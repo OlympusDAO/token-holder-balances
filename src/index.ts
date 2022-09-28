@@ -131,25 +131,18 @@ const readRecords = (date: Date): TokenHolderTransaction[] => {
 };
 
 const balancesRoot = "output/balances";
-const getBalancesFilePath = (date: Date): string => {
-  return `${balancesRoot}/${getISO8601DateString(date)}.json`;
+const getBalancesFilePath = (date: Date, suffix: string): string => {
+  return `${balancesRoot}/${getISO8601DateString(date)}.${suffix}`;
 };
 
 const readBalances = (date: Date): Map<string, TokenHolderBalance> => {
-  const filePath = getBalancesFilePath(date);
+  const filePath = getBalancesFilePath(date, "json");
   if (!existsSync(filePath)) {
     return new Map<string, TokenHolderBalance>();
   }
 
-  const balances = JSON.parse(readFileSync(filePath, "utf-8")) as Map<
-    string,
-    TokenHolderBalance
-  >;
-  return new Map<string, TokenHolderBalance>(
-    Array.from(balances).filter(
-      ([_key, value]) => parseFloat(value.balance) > 0
-    )
-  );
+  const balances = JSON.parse(readFileSync(filePath, "utf-8"));
+  return new Map<string, TokenHolderBalance>(Object.entries(balances));
 };
 
 export const generateBalances = (): void => {
@@ -196,10 +189,14 @@ export const generateBalances = (): void => {
 
     // Write to file
     writeFile(
-      getBalancesFilePath(currentDate),
-      JSON.stringify(balances.values(), null, 2)
+      getBalancesFilePath(currentDate, "json"),
+      JSON.stringify(Object.fromEntries(balances), null, 2)
     );
-    // writeFileSync("output/balances.csv", CSV.stringify(flatBalances));
+    // TODO FIX CSV output
+    // writeFileSync(
+    //   getBalancesFilePath(currentDate, "csv"),
+    //   CSV.stringify(Array.from(balances.values()))
+    // );
 
     // Increment by a day
     currentDate = new Date(currentDate.getTime() + timeDelta);
