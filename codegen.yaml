@@ -1,0 +1,13 @@
+schema: https://api.studio.thegraph.com/query/28103/token-holders/0.0.23
+documents: 'index.ts'
+generates:
+  graphql/generated.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+    config:
+      preResolveTypes: true
+      scalars:
+        BigDecimal: number
+        BigInt: number
+        Bytes: Uint8Array # https://thegraph.com/docs/en/developing/assemblyscript-api/#bytes
