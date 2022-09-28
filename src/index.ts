@@ -1,67 +1,91 @@
-import { ApolloClient, InMemoryCache } from "@apollo/client/core";
-import { existsSync, readFileSync } from "fs";
-import gql from "graphql-tag";
-import { TokenHolderTransaction } from "./graphql/generated";
-import * as CSV from "csv-string";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import {
+  TokenHolderTransaction,
+  TransactionsDocument,
+} from "./graphql/generated";
+import { Client, createClient } from "@urql/core";
+import fetch from "cross-fetch";
 
-const TransactionsDocument = gql`
-  query Transactions($skip: Int, $startDate: String, $finishDate: String) {
-    tokenHolderTransactions(
-      orderBy: timestamp
-      orderDirection: asc
-      first: 1000
-      skip: $skip
-      where: { date_gte: $startDate, date_lt: $finishDate }
-    ) {
-      id
-      balance
-      block
-      date
-      holder {
-        id
-        balance
-        holder
-        id
-        latestSnapshot
-        token {
-          address
-          blockchain
-          id
-          name
-        }
-      }
-      id
-      previousBalance
-      timestamp
-      transaction
-      type
-      value
-    }
-  }
-`;
+const fetchGraphQLRecords = async (
+  client: Client,
+  page: number,
+  startDate: Date,
+  finishDate: Date
+): Promise<TokenHolderTransaction[]> => {
+  console.debug(
+    `Fetching records for date range ${startDate.toISOString()} - ${finishDate.toISOString()} and page ${page}`
+  );
+  const queryResults = await client
+    .query(TransactionsDocument, {
+      skip: page,
+      startDate: startDate.toISOString(),
+      finishDate: finishDate.toISOString(),
+    })
+    .toPromise();
 
-const getRecords = (): TokenHolderTransaction[] => {
-  const recordsPath = "output/results.csv";
-  // If the file exists, read and return
-  if (existsSync(recordsPath)) {
-    const content = readFileSync(recordsPath);
-    return CSV.parse(content.toString(), {
-      output: "objects",
-    }) as unknown as TokenHolderTransaction[];
+  if (!queryResults.data) {
+    throw new Error(
+      `Did not receive results from GraphQL query for page ${page}, start date ${startDate.toISOString()}, finish date ${finishDate.toISOString()}`
+    );
   }
 
-  // TODO Otherwise fetch
-  const client = new ApolloClient({
-    uri: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.23",
-    cache: new InMemoryCache(),
-  });
+  const records = queryResults.data
+    .tokenHolderTransactions as TokenHolderTransaction[];
+  console.debug(`Received ${records.length} records`);
+  // If we haven't hit the page limit...
+  if (records.length < 1000) {
+    return records;
+  }
 
-  return [];
+  // Otherwise we recursively fetch the next page
+  return fetchGraphQLRecords(client, page + 1, startDate, finishDate);
 };
 
-function main() {
-  const records = getRecords();
-  console.log(JSON.stringify(records[0]));
+const getRecords = async (): Promise<TokenHolderTransaction[]> => {
+  const recordsPath = "output/records.json";
+  // If the file exists, read and return
+  if (existsSync(recordsPath)) {
+    console.info(`Reading existing records from ${recordsPath}`);
+    const content = readFileSync(recordsPath);
+
+    return JSON.parse(content.toString());
+  }
+
+  const client = createClient({
+    url: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.23",
+    fetch,
+  });
+
+  let startDate = new Date("2021-11-24");
+  const finalDate = new Date("2021-11-30");
+  const timeDelta = 6 * 60 * 60 * 1000; // 6 hours
+  const baseRecords = [];
+
+  while (startDate < finalDate) {
+    // Calculate the end of the next query loop
+    const queryFinishDate = new Date(startDate.getTime() + timeDelta);
+
+    const records = await fetchGraphQLRecords(
+      client,
+      0,
+      startDate,
+      queryFinishDate
+    );
+    baseRecords.push(...records);
+
+    // Increment for the next loop
+    startDate = queryFinishDate;
+  }
+
+  console.info(`Writing records to ${recordsPath}`);
+  writeFileSync(recordsPath, JSON.stringify(baseRecords, null, 2));
+
+  return baseRecords;
+};
+
+async function main() {
+  const records = await getRecords();
+  console.info(`${records.length} are available`);
 }
 
 if (require.main === module) {

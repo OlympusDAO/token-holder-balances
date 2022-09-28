@@ -1,0 +1,33 @@
+query Transactions($skip: Int, $startDate: String, $finishDate: String) {
+  tokenHolderTransactions(
+    orderBy: timestamp
+    orderDirection: asc
+    first: 1000
+    skip: $skip
+    where: { date_gte: $startDate, date_lt: $finishDate }
+  ) {
+    id
+    balance
+    block
+    date
+    holder {
+      id
+      balance
+      holder
+      id
+      latestSnapshot
+      token {
+        address
+        blockchain
+        id
+        name
+      }
+    }
+    id
+    previousBalance
+    timestamp
+    transaction
+    type
+    value
+  }
+}

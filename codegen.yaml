@@ -1,10 +1,11 @@
 schema: https://api.studio.thegraph.com/query/28103/token-holders/0.0.23
-documents: "src/index.ts"
+documents: "src/query.graphql"
 generates:
   src/graphql/generated.ts:
     plugins:
       - typescript
       - typescript-operations
+      - typed-document-node
     config:
       preResolveTypes: true
       scalars:
