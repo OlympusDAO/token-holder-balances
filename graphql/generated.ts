@@ -620,7 +620,11 @@ export enum _SubgraphErrorPolicy_ {
   Deny = 'deny'
 }
 
-export type Unnamed_1_QueryVariables = Exact<{ [key: string]: never; }>;
+export type TransactionsQueryVariables = Exact<{
+  skip?: InputMaybe<Scalars['Int']>;
+  startDate?: InputMaybe<Scalars['String']>;
+  finishDate?: InputMaybe<Scalars['String']>;
+}>;
 
 
-export type Unnamed_1_Query = { __typename?: 'Query', tokenHolderTransactions: Array<{ __typename?: 'TokenHolderTransaction', id: string, balance: number, block: number, date: string, type: TransactionType, previousBalance: number, timestamp: string, transaction: Uint8Array, value: number, holder: { __typename?: 'TokenHolder', id: string, holder: Uint8Array, token: { __typename?: 'Token', address: Uint8Array, blockchain: string, name: string } } }> };
+export type TransactionsQuery = { __typename?: 'Query', tokenHolderTransactions: Array<{ __typename?: 'TokenHolderTransaction', id: string, balance: number, block: number, date: string, type: TransactionType, previousBalance: number, timestamp: string, transaction: Uint8Array, value: number, holder: { __typename?: 'TokenHolder', id: string, holder: Uint8Array, token: { __typename?: 'Token', address: Uint8Array, blockchain: string, name: string } } }> };

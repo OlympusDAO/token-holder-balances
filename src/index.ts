@@ -1,8 +1,18 @@
+import { ApolloClient, InMemoryCache } from "@apollo/client";
 import gql from "graphql-tag";
 
 const TransactionsDocument = gql`
-  query {
-    tokenHolderTransactions(orderBy: timestamp, orderDirection: asc) {
+  query Transactions($skip: Int, $startDate: String, $finishDate: String) {
+    tokenHolderTransactions(
+      orderBy: timestamp, 
+      orderDirection: asc, 
+      first: 1000, 
+      skip: $skip, 
+      where: {
+        date_gte: $startDate,
+        date_lt: $finishDate,
+      }
+    ) {
       id
       balance
       block
@@ -26,7 +36,12 @@ const TransactionsDocument = gql`
 `;
 
 function main() {
-  //
+  const client = new ApolloClient({
+    uri: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.23",
+    cache: new InMemoryCache(),
+  });
+
+  
 }
 
 if (require.main === module) {
