@@ -1,8 +1,13 @@
-query Transactions($skip: Int, $startDate: String, $finishDate: String) {
+query Transactions(
+  $count: Int
+  $skip: Int
+  $startDate: String
+  $finishDate: String
+) {
   tokenHolderTransactions(
     orderBy: timestamp
     orderDirection: asc
-    first: 1000
+    first: $count
     skip: $skip
     where: { date_gte: $startDate, date_lt: $finishDate }
   ) {

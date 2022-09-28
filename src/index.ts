@@ -15,9 +15,11 @@ const fetchGraphQLRecords = async (
   console.debug(
     `Fetching records for date range ${startDate.toISOString()} - ${finishDate.toISOString()} and page ${page}`
   );
+  const recordCount = 1000;
   const queryResults = await client
     .query(TransactionsDocument, {
-      skip: page,
+      count: recordCount,
+      skip: recordCount * page,
       startDate: startDate.toISOString(),
       finishDate: finishDate.toISOString(),
     })
@@ -57,7 +59,7 @@ const getRecords = async (): Promise<TokenHolderTransaction[]> => {
   });
 
   let startDate = new Date("2021-11-24");
-  const finalDate = new Date("2021-11-30");
+  const finalDate = new Date();
   const timeDelta = 6 * 60 * 60 * 1000; // 6 hours
   const baseRecords = [];
 
