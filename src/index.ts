@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import {
   TokenHolderTransaction,
   TransactionsDocument,
@@ -8,6 +8,7 @@ import fetch from "cross-fetch";
 import { getISO8601DateString } from "./dateHelper";
 import * as CSV from "csv-string";
 import Big from "big.js";
+import path from "path";
 
 const fetchGraphQLRecords = async (
   client: Client,
@@ -46,26 +47,50 @@ const fetchGraphQLRecords = async (
   return fetchGraphQLRecords(client, page + 1, startDate, finishDate);
 };
 
-const getRecords = async (): Promise<TokenHolderTransaction[]> => {
-  const recordsPath = "output/records.json";
-  // TODO split into files by date
-  // If the file exists, read and return
-  if (existsSync(recordsPath)) {
-    console.info(`Reading existing records from ${recordsPath}`);
-    const content = readFileSync(recordsPath);
+const recordsPath = "output/records";
+const earliestDate = new Date("2021-11-24T00:00:00.000Z");
+const finalDate = new Date();
 
-    return JSON.parse(content.toString());
+const getRecordsFilePath = (date: Date): string => {
+  return `${recordsPath}/${getISO8601DateString(date)}.json`;
+};
+
+const getLatestRecordsDate = (): Date => {
+  const timeDelta = 24 * 60 * 60 * 1000; // 1 day
+  let currentDate = earliestDate;
+
+  while (currentDate < finalDate) {
+    // If a file doesn't exist, return one day earlier (in case we did not get all records from the day)
+    if (!existsSync(getRecordsFilePath(currentDate))) {
+      return new Date(currentDate.getTime() - timeDelta);
+    }
+
+    // Increment
+    currentDate = new Date(currentDate.getTime() + timeDelta);
   }
 
+  return finalDate;
+};
+
+const writeFile = (filePath: string, content: string): void => {
+  // Create folder
+  const directory = path.dirname(filePath);
+  if (!existsSync(directory)) {
+    mkdirSync(directory, { recursive: true });
+  }
+
+  // Write file
+  writeFileSync(filePath, content);
+};
+
+const getRecords = async (): Promise<void> => {
   const client = createClient({
     url: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.23",
     fetch,
   });
 
-  let startDate = new Date("2021-11-24");
-  const finalDate = new Date();
+  let startDate = getLatestRecordsDate();
   const timeDelta = 6 * 60 * 60 * 1000; // 6 hours
-  const baseRecords = [];
 
   while (startDate < finalDate) {
     // Calculate the end of the next query loop
@@ -77,17 +102,13 @@ const getRecords = async (): Promise<TokenHolderTransaction[]> => {
       startDate,
       queryFinishDate
     );
-    baseRecords.push(...records);
+
+    // Write to file
+    writeFile(getRecordsFilePath(startDate), JSON.stringify(records, null, 2));
 
     // Increment for the next loop
     startDate = queryFinishDate;
   }
-
-  console.info(`Writing records to ${recordsPath}`);
-  // TODO write to by-date files
-  writeFileSync(recordsPath, JSON.stringify(baseRecords, null, 2));
-
-  return baseRecords;
 };
 
 type TokenHolderBalance = {
@@ -98,27 +119,42 @@ type TokenHolderBalance = {
   token: string;
 };
 
-export const generateBalances = (
-  records: TokenHolderTransaction[]
-): Map<string, Map<string, TokenHolderBalance>> => {
-  // Index by date
-  const transactionsByDate = records.reduce((map, record) => {
-    const recordDate = getISO8601DateString(new Date(record.date));
-    const existingRecords = map.get(recordDate) || [];
-    existingRecords.push(record);
-    map.set(recordDate, existingRecords);
-    return map;
-  }, new Map<string, TokenHolderTransaction[]>());
-  const balances = new Map<string, Map<string, TokenHolderBalance>>();
+const readRecords = (date: Date): TokenHolderTransaction[] => {
+  const filePath = getRecordsFilePath(date);
+  if (!existsSync(filePath)) {
+    return [];
+  }
 
-  // Loop through dates
-  const startDate = new Date(
-    Math.min(
-      ...Array.from(transactionsByDate.keys()).map((dateString) =>
-        new Date(dateString).getTime()
-      )
+  return JSON.parse(
+    readFileSync(filePath, "utf-8")
+  ) as TokenHolderTransaction[];
+};
+
+const balancesRoot = "output/balances";
+const getBalancesFilePath = (date: Date): string => {
+  return `${balancesRoot}/${getISO8601DateString(date)}.json`;
+};
+
+const readBalances = (date: Date): Map<string, TokenHolderBalance> => {
+  const filePath = getBalancesFilePath(date);
+  if (!existsSync(filePath)) {
+    return new Map<string, TokenHolderBalance>();
+  }
+
+  const balances = JSON.parse(readFileSync(filePath, "utf-8")) as Map<
+    string,
+    TokenHolderBalance
+  >;
+  return new Map<string, TokenHolderBalance>(
+    Array.from(balances).filter(
+      ([_key, value]) => parseFloat(value.balance) > 0
     )
   );
+};
+
+export const generateBalances = (): void => {
+  // Loop through dates
+  const startDate = earliestDate;
   const finishDate = new Date();
   const timeDelta = 24 * 60 * 60 * 1000;
   let currentDate = startDate;
@@ -126,30 +162,19 @@ export const generateBalances = (
     const currentDateString = getISO8601DateString(currentDate);
     console.info(`Calculating balances for ${currentDateString}`);
 
-    // Get balances for the previous day & restrict to balances that need to be updated for the current date
-    const previousDate = getISO8601DateString(
-      new Date(currentDate.getTime() - timeDelta)
-    );
-    const previousBalances = new Map<string, TokenHolderBalance>(
-      Array.from(
-        balances.get(previousDate) || new Map<string, TokenHolderBalance>()
-      ).filter(([_key, value]) => parseFloat(value.balance) > 0)
-    );
-    // Use the previous day's balances as a starting point. Deep copy.
-    const currentBalances: Map<string, TokenHolderBalance> = new Map<
-      string,
-      TokenHolderBalance
-    >(JSON.parse(JSON.stringify([...previousBalances])));
+    // Get balances for the previous day
+    const previousDate = new Date(currentDate.getTime() - timeDelta);
+    const balances = readBalances(previousDate);
 
     // Iterate over all of the current date's transactions and update balances
-    const currentTransactions = transactionsByDate.get(currentDateString) || [];
+    const currentTransactions = readRecords(currentDate);
     currentTransactions.forEach((transaction) => {
       const balanceKey = `${transaction.holder.holder.toString()}/${
         transaction.holder.token.name
       }/${transaction.holder.token.blockchain}`;
 
       // Fetch the existing balance, or create a new one
-      const currentBalance = currentBalances.get(balanceKey) || {
+      const currentBalance = balances.get(balanceKey) || {
         balance: "0",
         blockchain: transaction.holder.token.blockchain,
         date: currentDateString,
@@ -164,31 +189,29 @@ export const generateBalances = (
         .toFixed(18)
         .replace(/(?:\.0+|(\.\d+?)0+)$/, "$1"); // Trim trailing zeroes
 
-      currentBalances.set(balanceKey, currentBalance);
+      balances.set(balanceKey, currentBalance);
     });
 
-    console.info(`  ${currentBalances.size} records`);
-    balances.set(currentDateString, currentBalances);
+    console.info(`  ${balances.size} records`);
+
+    // Write to file
+    writeFile(
+      getBalancesFilePath(currentDate),
+      JSON.stringify(balances.values(), null, 2)
+    );
+    // writeFileSync("output/balances.csv", CSV.stringify(flatBalances));
 
     // Increment by a day
     currentDate = new Date(currentDate.getTime() + timeDelta);
   }
-
-  return balances;
 };
 
+// TODO re-org/cleanup file
+
 async function main() {
-  const records = await getRecords();
-  console.info(`${records.length} are available`);
+  await getRecords();
 
-  const balances = generateBalances(records);
-  const flatBalances = Array.from(balances.values()).flatMap((value) => {
-    return Array.from(value.values());
-  });
-
-  console.info(`Writing balances`);
-  writeFileSync("output/balances.json", JSON.stringify(flatBalances, null, 2));
-  // writeFileSync("output/balances.csv", CSV.stringify(flatBalances));
+  generateBalances();
 }
 
 if (require.main === module) {
