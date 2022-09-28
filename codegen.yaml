@@ -1,7 +1,7 @@
 schema: https://api.studio.thegraph.com/query/28103/token-holders/0.0.23
-documents: 'src/index.ts'
+documents: "src/index.ts"
 generates:
-  graphql/generated.ts:
+  src/graphql/generated.ts:
     plugins:
       - typescript
       - typescript-operations

@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@apollo/client": "^3.6.9",
+    "csv-string": "^4.1.0",
     "graphql": "^16.6.0",
     "node-fetch": "^3.2.6"
   },
