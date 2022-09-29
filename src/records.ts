@@ -31,6 +31,7 @@ const getLatestRecordsDate = (): Date => {
 };
 
 export const getRecords = async (): Promise<void> => {
+  console.info(`Fetching records`);
   const client = createClient({
     url: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.29",
     fetch,

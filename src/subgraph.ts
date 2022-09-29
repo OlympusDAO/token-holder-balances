@@ -72,6 +72,7 @@ export const getGraphQLRecords = async (
   // Ensure the starting date is at midnight
   let queryStartDate = new Date(date.getTime());
   queryStartDate.setUTCHours(0);
+  console.info(`\n\n📆 Date: ${getISO8601DateString(queryStartDate)}`);
 
   // Ending date is the start of the next day
   const finalDate = new Date(queryStartDate.getTime());
@@ -94,7 +95,9 @@ export const getGraphQLRecords = async (
   }
 
   console.info(
-    `Total of ${records.length} records for date ${getISO8601DateString(date)}`
+    `✅ Total of ${records.length} records for date ${getISO8601DateString(
+      date
+    )}`
   );
   return records;
 };
