@@ -19,14 +19,25 @@ const getBalancesFilePath = (date: Date, suffix: string): string => {
   return `${balancesRoot}/${getISO8601DateString(date)}.${suffix}`;
 };
 
+const getBalanceKey = (balance: TokenHolderBalance): string => {
+  return `${balance.holder}/${balance.token}/${balance.blockchain}`;
+};
+
 const readBalances = (date: Date): Map<string, TokenHolderBalance> => {
   const filePath = getBalancesFilePath(date, "json");
   if (!existsSync(filePath)) {
     return new Map<string, TokenHolderBalance>();
   }
 
+  // Stored as an array of TokenHolderBalance
   const balances = JSON.parse(readFileSync(filePath, "utf-8"));
-  return new Map<string, TokenHolderBalance>(Object.entries(balances));
+  // Convert to the required format
+  return new Map<string, TokenHolderBalance>(
+    balances.map((balance: TokenHolderBalance) => [
+      getBalanceKey(balance),
+      balance,
+    ])
+  );
 };
 
 export const generateBalances = async (): Promise<void> => {
