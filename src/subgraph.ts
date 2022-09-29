@@ -67,7 +67,7 @@ export const getGraphQLRecords = async (
   client: Client,
   date: Date
 ): Promise<TokenHolderTransaction[]> => {
-  const timeDelta = 6 * 60 * 60 * 1000; // 6 hours for each loop
+  const timeDelta = 4 * 60 * 60 * 1000; // 4 hours for each loop
 
   // Ensure the starting date is at midnight
   let queryStartDate = new Date(date.getTime());
