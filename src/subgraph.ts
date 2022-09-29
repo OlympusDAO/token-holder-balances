@@ -48,7 +48,13 @@ const fetchGraphQLRecords = async (
   }
 
   // Otherwise we recursively fetch the next page
-  return fetchGraphQLRecords(client, page + 1, startDate, finishDate);
+  const nextRecords = await fetchGraphQLRecords(
+    client,
+    page + 1,
+    startDate,
+    finishDate
+  );
+  return [...records, ...nextRecords];
 };
 
 /**
