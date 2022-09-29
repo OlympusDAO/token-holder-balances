@@ -1,4 +1,4 @@
-schema: https://api.studio.thegraph.com/query/28103/token-holders/0.0.38
+schema: https://api.studio.thegraph.com/query/28103/token-holders/0.0.39
 documents: "src/query.graphql"
 generates:
   src/graphql/generated.ts:
