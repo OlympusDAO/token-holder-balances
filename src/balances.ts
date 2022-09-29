@@ -69,17 +69,23 @@ export const generateBalances = async (): Promise<void> => {
       balances.set(balanceKey, currentBalance);
     });
 
-    console.info(`  ${balances.size} records`);
+    // Trim 0 balances
+    const trimmedBalances = Array.from(balances.values()).filter(
+      (balance) => !new Big(balance.balance).eq(0)
+    );
+    console.info(
+      `  ${trimmedBalances.length} records (${
+        balances.size - trimmedBalances.length
+      } trimmed)`
+    );
 
     // Write to file
     writeFile(
       getBalancesFilePath(currentDate, "json"),
-      JSON.stringify(Object.fromEntries(balances), null, 2)
+      JSON.stringify(trimmedBalances, null, 2)
     );
 
-    const csvString = await new ObjectsToCsv(
-      Array.from(balances.values())
-    ).toString();
+    const csvString = await new ObjectsToCsv(trimmedBalances).toString();
     writeFile(getBalancesFilePath(currentDate, "csv"), csvString);
 
     // Increment by a day
