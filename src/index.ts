@@ -85,7 +85,7 @@ const writeFile = (filePath: string, content: string): void => {
 
 const getRecords = async (): Promise<void> => {
   const client = createClient({
-    url: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.23",
+    url: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.29",
     fetch,
   });
 

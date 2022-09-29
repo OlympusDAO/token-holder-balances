@@ -1,4 +1,4 @@
-schema: https://api.studio.thegraph.com/query/28103/token-holders/0.0.23
+schema: https://api.studio.thegraph.com/query/28103/token-holders/0.0.29
 documents: "src/query.graphql"
 generates:
   src/graphql/generated.ts:
@@ -12,3 +12,6 @@ generates:
         BigDecimal: number
         BigInt: number
         Bytes: Uint8Array # https://thegraph.com/docs/en/developing/assemblyscript-api/#bytes
+    hooks:
+      afterOneFileWrite:
+        - yarn eslint --config ./.eslintrc.js --fix

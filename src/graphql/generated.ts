@@ -44,8 +44,6 @@ export type Query = {
   _meta?: Maybe<_Meta_>;
   token?: Maybe<Token>;
   tokenHolder?: Maybe<TokenHolder>;
-  tokenHolderSnapshot?: Maybe<TokenHolderSnapshot>;
-  tokenHolderSnapshots: Array<TokenHolderSnapshot>;
   tokenHolderTransaction?: Maybe<TokenHolderTransaction>;
   tokenHolderTransactions: Array<TokenHolderTransaction>;
   tokenHolders: Array<TokenHolder>;
@@ -66,22 +64,6 @@ export type QueryTokenHolderArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars["ID"];
   subgraphError?: _SubgraphErrorPolicy_;
-};
-
-export type QueryTokenHolderSnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars["ID"];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-export type QueryTokenHolderSnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars["Int"]>;
-  orderBy?: InputMaybe<TokenHolderSnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars["Int"]>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenHolderSnapshot_Filter>;
 };
 
 export type QueryTokenHolderTransactionArgs = {
@@ -126,8 +108,6 @@ export type Subscription = {
   _meta?: Maybe<_Meta_>;
   token?: Maybe<Token>;
   tokenHolder?: Maybe<TokenHolder>;
-  tokenHolderSnapshot?: Maybe<TokenHolderSnapshot>;
-  tokenHolderSnapshots: Array<TokenHolderSnapshot>;
   tokenHolderTransaction?: Maybe<TokenHolderTransaction>;
   tokenHolderTransactions: Array<TokenHolderTransaction>;
   tokenHolders: Array<TokenHolder>;
@@ -148,22 +128,6 @@ export type SubscriptionTokenHolderArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars["ID"];
   subgraphError?: _SubgraphErrorPolicy_;
-};
-
-export type SubscriptionTokenHolderSnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars["ID"];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-export type SubscriptionTokenHolderSnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars["Int"]>;
-  orderBy?: InputMaybe<TokenHolderSnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars["Int"]>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenHolderSnapshot_Filter>;
 };
 
 export type SubscriptionTokenHolderTransactionArgs = {
@@ -215,86 +179,8 @@ export type TokenHolder = {
   balance: Scalars["BigDecimal"];
   holder: Scalars["Bytes"];
   id: Scalars["ID"];
-  latestSnapshot?: Maybe<Scalars["ID"]>;
   token: Token;
 };
-
-export type TokenHolderSnapshot = {
-  __typename?: "TokenHolderSnapshot";
-  balance: Scalars["BigDecimal"];
-  date: Scalars["String"];
-  holder: TokenHolder;
-  id: Scalars["ID"];
-};
-
-export type TokenHolderSnapshot_Filter = {
-  /** Filter for the block changed event. */
-  _change_block?: InputMaybe<BlockChangedFilter>;
-  balance?: InputMaybe<Scalars["BigDecimal"]>;
-  balance_gt?: InputMaybe<Scalars["BigDecimal"]>;
-  balance_gte?: InputMaybe<Scalars["BigDecimal"]>;
-  balance_in?: InputMaybe<Array<Scalars["BigDecimal"]>>;
-  balance_lt?: InputMaybe<Scalars["BigDecimal"]>;
-  balance_lte?: InputMaybe<Scalars["BigDecimal"]>;
-  balance_not?: InputMaybe<Scalars["BigDecimal"]>;
-  balance_not_in?: InputMaybe<Array<Scalars["BigDecimal"]>>;
-  date?: InputMaybe<Scalars["String"]>;
-  date_contains?: InputMaybe<Scalars["String"]>;
-  date_contains_nocase?: InputMaybe<Scalars["String"]>;
-  date_ends_with?: InputMaybe<Scalars["String"]>;
-  date_ends_with_nocase?: InputMaybe<Scalars["String"]>;
-  date_gt?: InputMaybe<Scalars["String"]>;
-  date_gte?: InputMaybe<Scalars["String"]>;
-  date_in?: InputMaybe<Array<Scalars["String"]>>;
-  date_lt?: InputMaybe<Scalars["String"]>;
-  date_lte?: InputMaybe<Scalars["String"]>;
-  date_not?: InputMaybe<Scalars["String"]>;
-  date_not_contains?: InputMaybe<Scalars["String"]>;
-  date_not_contains_nocase?: InputMaybe<Scalars["String"]>;
-  date_not_ends_with?: InputMaybe<Scalars["String"]>;
-  date_not_ends_with_nocase?: InputMaybe<Scalars["String"]>;
-  date_not_in?: InputMaybe<Array<Scalars["String"]>>;
-  date_not_starts_with?: InputMaybe<Scalars["String"]>;
-  date_not_starts_with_nocase?: InputMaybe<Scalars["String"]>;
-  date_starts_with?: InputMaybe<Scalars["String"]>;
-  date_starts_with_nocase?: InputMaybe<Scalars["String"]>;
-  holder?: InputMaybe<Scalars["String"]>;
-  holder_?: InputMaybe<TokenHolder_Filter>;
-  holder_contains?: InputMaybe<Scalars["String"]>;
-  holder_contains_nocase?: InputMaybe<Scalars["String"]>;
-  holder_ends_with?: InputMaybe<Scalars["String"]>;
-  holder_ends_with_nocase?: InputMaybe<Scalars["String"]>;
-  holder_gt?: InputMaybe<Scalars["String"]>;
-  holder_gte?: InputMaybe<Scalars["String"]>;
-  holder_in?: InputMaybe<Array<Scalars["String"]>>;
-  holder_lt?: InputMaybe<Scalars["String"]>;
-  holder_lte?: InputMaybe<Scalars["String"]>;
-  holder_not?: InputMaybe<Scalars["String"]>;
-  holder_not_contains?: InputMaybe<Scalars["String"]>;
-  holder_not_contains_nocase?: InputMaybe<Scalars["String"]>;
-  holder_not_ends_with?: InputMaybe<Scalars["String"]>;
-  holder_not_ends_with_nocase?: InputMaybe<Scalars["String"]>;
-  holder_not_in?: InputMaybe<Array<Scalars["String"]>>;
-  holder_not_starts_with?: InputMaybe<Scalars["String"]>;
-  holder_not_starts_with_nocase?: InputMaybe<Scalars["String"]>;
-  holder_starts_with?: InputMaybe<Scalars["String"]>;
-  holder_starts_with_nocase?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["ID"]>;
-  id_gt?: InputMaybe<Scalars["ID"]>;
-  id_gte?: InputMaybe<Scalars["ID"]>;
-  id_in?: InputMaybe<Array<Scalars["ID"]>>;
-  id_lt?: InputMaybe<Scalars["ID"]>;
-  id_lte?: InputMaybe<Scalars["ID"]>;
-  id_not?: InputMaybe<Scalars["ID"]>;
-  id_not_in?: InputMaybe<Array<Scalars["ID"]>>;
-};
-
-export enum TokenHolderSnapshot_OrderBy {
-  Balance = "balance",
-  Date = "date",
-  Holder = "holder",
-  Id = "id",
-}
 
 export type TokenHolderTransaction = {
   __typename?: "TokenHolderTransaction";
@@ -306,6 +192,7 @@ export type TokenHolderTransaction = {
   previousBalance: Scalars["BigDecimal"];
   timestamp: Scalars["String"];
   transaction: Scalars["Bytes"];
+  transactionLogIndex: Scalars["BigInt"];
   type: TransactionType;
   value: Scalars["BigDecimal"];
 };
@@ -407,6 +294,14 @@ export type TokenHolderTransaction_Filter = {
   timestamp_starts_with?: InputMaybe<Scalars["String"]>;
   timestamp_starts_with_nocase?: InputMaybe<Scalars["String"]>;
   transaction?: InputMaybe<Scalars["Bytes"]>;
+  transactionLogIndex?: InputMaybe<Scalars["BigInt"]>;
+  transactionLogIndex_gt?: InputMaybe<Scalars["BigInt"]>;
+  transactionLogIndex_gte?: InputMaybe<Scalars["BigInt"]>;
+  transactionLogIndex_in?: InputMaybe<Array<Scalars["BigInt"]>>;
+  transactionLogIndex_lt?: InputMaybe<Scalars["BigInt"]>;
+  transactionLogIndex_lte?: InputMaybe<Scalars["BigInt"]>;
+  transactionLogIndex_not?: InputMaybe<Scalars["BigInt"]>;
+  transactionLogIndex_not_in?: InputMaybe<Array<Scalars["BigInt"]>>;
   transaction_contains?: InputMaybe<Scalars["Bytes"]>;
   transaction_in?: InputMaybe<Array<Scalars["Bytes"]>>;
   transaction_not?: InputMaybe<Scalars["Bytes"]>;
@@ -435,6 +330,7 @@ export enum TokenHolderTransaction_OrderBy {
   PreviousBalance = "previousBalance",
   Timestamp = "timestamp",
   Transaction = "transaction",
+  TransactionLogIndex = "transactionLogIndex",
   Type = "type",
   Value = "value",
 }
@@ -464,14 +360,6 @@ export type TokenHolder_Filter = {
   id_lte?: InputMaybe<Scalars["ID"]>;
   id_not?: InputMaybe<Scalars["ID"]>;
   id_not_in?: InputMaybe<Array<Scalars["ID"]>>;
-  latestSnapshot?: InputMaybe<Scalars["ID"]>;
-  latestSnapshot_gt?: InputMaybe<Scalars["ID"]>;
-  latestSnapshot_gte?: InputMaybe<Scalars["ID"]>;
-  latestSnapshot_in?: InputMaybe<Array<Scalars["ID"]>>;
-  latestSnapshot_lt?: InputMaybe<Scalars["ID"]>;
-  latestSnapshot_lte?: InputMaybe<Scalars["ID"]>;
-  latestSnapshot_not?: InputMaybe<Scalars["ID"]>;
-  latestSnapshot_not_in?: InputMaybe<Array<Scalars["ID"]>>;
   token?: InputMaybe<Scalars["String"]>;
   token_?: InputMaybe<Token_Filter>;
   token_contains?: InputMaybe<Scalars["String"]>;
@@ -499,7 +387,6 @@ export enum TokenHolder_OrderBy {
   Balance = "balance",
   Holder = "holder",
   Id = "id",
-  LatestSnapshot = "latestSnapshot",
   Token = "token",
 }
 
@@ -610,6 +497,7 @@ export enum _SubgraphErrorPolicy_ {
 }
 
 export type TransactionsQueryVariables = Exact<{
+  count?: InputMaybe<Scalars["Int"]>;
   skip?: InputMaybe<Scalars["Int"]>;
   startDate?: InputMaybe<Scalars["String"]>;
   finishDate?: InputMaybe<Scalars["String"]>;
@@ -626,6 +514,7 @@ export type TransactionsQuery = {
     previousBalance: number;
     timestamp: string;
     transaction: Uint8Array;
+    transactionLogIndex: number;
     type: TransactionType;
     value: number;
     holder: {
@@ -633,7 +522,6 @@ export type TransactionsQuery = {
       id: string;
       balance: number;
       holder: Uint8Array;
-      latestSnapshot?: string | null;
       token: {
         __typename?: "Token";
         address: Uint8Array;
@@ -653,6 +541,14 @@ export const TransactionsDocument = {
       operation: "query",
       name: { kind: "Name", value: "Transactions" },
       variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "count" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+        },
         {
           kind: "VariableDefinition",
           variable: { kind: "Variable", name: { kind: "Name", value: "skip" } },
@@ -695,7 +591,10 @@ export const TransactionsDocument = {
               {
                 kind: "Argument",
                 name: { kind: "Name", value: "first" },
-                value: { kind: "IntValue", value: "1000" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "count" },
+                },
               },
               {
                 kind: "Argument",
@@ -756,10 +655,6 @@ export const TransactionsDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "latestSnapshot" },
-                      },
-                      {
-                        kind: "Field",
                         name: { kind: "Name", value: "token" },
                         selectionSet: {
                           kind: "SelectionSet",
@@ -793,6 +688,10 @@ export const TransactionsDocument = {
                 },
                 { kind: "Field", name: { kind: "Name", value: "timestamp" } },
                 { kind: "Field", name: { kind: "Name", value: "transaction" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "transactionLogIndex" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "value" } },
               ],
