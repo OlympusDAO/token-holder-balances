@@ -5,7 +5,7 @@ import { DATE_EARLIEST, DATE_FINAL } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
 import { getISO8601DateString } from "./helpers/date";
 import { writeFile } from "./helpers/fs";
-import { fetchGraphQLRecords } from "./subgraph";
+import { getGraphQLRecords } from "./subgraph";
 
 const recordsPath = "output/records";
 
@@ -37,25 +37,17 @@ export const getRecords = async (): Promise<void> => {
   });
 
   let startDate = getLatestRecordsDate();
-  const timeDelta = 6 * 60 * 60 * 1000; // 6 hours
+  const timeDelta = 24 * 60 * 60 * 1000; // 1 day
 
-  while (startDate < DATE_FINAL) {
-    // Calculate the end of the next query loop
-    const queryFinishDate = new Date(startDate.getTime() + timeDelta);
-
-    // TODO handle multiple loops within a day
-    const records = await fetchGraphQLRecords(
-      client,
-      0,
-      startDate,
-      queryFinishDate
-    );
+  // We loop over each day, fetch records and write those to disk
+  while (startDate <= DATE_FINAL) {
+    const records = await getGraphQLRecords(client, startDate);
 
     // Write to file
     writeFile(getRecordsFilePath(startDate), JSON.stringify(records, null, 2));
 
     // Increment for the next loop
-    startDate = queryFinishDate;
+    startDate = new Date(startDate.getTime() + timeDelta);
   }
 };
 
