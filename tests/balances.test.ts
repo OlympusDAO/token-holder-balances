@@ -1,5 +1,5 @@
 import { generateBalances } from "../src";
-import { getISO8601DateString } from "../src/dateHelper";
+import { getISO8601DateString } from "../src/helpers/date";
 import {
   TokenHolderTransaction,
   TransactionType,
