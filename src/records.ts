@@ -1,7 +1,7 @@
 import { createClient } from "@urql/core";
 import fetch from "cross-fetch";
 import { existsSync, readFileSync } from "fs";
-import { DATE_EARLIEST, DATE_FINAL } from "./constants";
+import { DATE_EARLIEST, DATE_FINAL, SUBGRAPH_URL } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
 import { getISO8601DateString } from "./helpers/date";
 import { writeFile } from "./helpers/fs";
@@ -33,7 +33,7 @@ const getLatestRecordsDate = (): Date => {
 export const getRecords = async (): Promise<void> => {
   console.info(`Fetching records`);
   const client = createClient({
-    url: "https://api.studio.thegraph.com/query/28103/token-holders/0.0.29",
+    url: SUBGRAPH_URL,
     fetch,
   });
 
