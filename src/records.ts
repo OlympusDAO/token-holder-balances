@@ -5,8 +5,13 @@ import { existsSync, readFileSync } from "fs";
 import { SUBGRAPH_URL } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
 import { getISO8601DateString } from "./helpers/date";
+import { getEnvFinalDate } from "./helpers/env";
 import { writeFile } from "./helpers/fs";
-import { getEarliestTransactionDate, getGraphQLRecords, getLatestTransactionDate } from "./subgraph";
+import {
+  getEarliestTransactionDate,
+  getGraphQLRecords,
+  getLatestTransactionDate,
+} from "./subgraph";
 
 const recordsPath = "output/records";
 
@@ -14,7 +19,10 @@ const getRecordsFilePath = (date: Date): string => {
   return `${recordsPath}/${getISO8601DateString(date)}.json`;
 };
 
-const getLatestFetchedRecordsDate = (earliestDate: Date, finalDate: Date): Date => {
+const getLatestFetchedRecordsDate = (
+  earliestDate: Date,
+  finalDate: Date
+): Date => {
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
   let currentDate = earliestDate;
 
@@ -44,7 +52,6 @@ const getFinalDate = async (client: Client): Promise<Date> => {
   // We transform this into midnight of the same day/start of the next day
   const finalDate = new Date(latestDate.getTime() + 24 * 60 * 60 * 1000);
   finalDate.setUTCHours(0, 0, 0, 0);
-  console.log(`Final date is ${finalDate.toISOString()}`);
   return finalDate;
 };
 
@@ -61,7 +68,6 @@ const getEarliestDate = async (client: Client): Promise<Date> => {
   // We transform this into the start of the same day
   const finalDate = new Date(earliestDate.getTime());
   finalDate.setUTCHours(0, 0, 0, 0);
-  console.log(`Earliest date is ${finalDate.toISOString()}`);
   return finalDate;
 };
 
@@ -73,8 +79,9 @@ export const getRecords = async (): Promise<void> => {
   });
 
   const earliestDate = await getEarliestDate(client);
-  // TODO add flag for final date
-  const finalDate = new Date("2022-02-01"); //await getFinalDate(client);
+  console.log(`Earliest date is ${earliestDate.toISOString()}`);
+  const finalDate = getEnvFinalDate() || (await getFinalDate(client));
+  console.log(`Final date is ${finalDate.toISOString()}`);
   let startDate = getLatestFetchedRecordsDate(earliestDate, finalDate);
   console.log(`Start date is ${startDate.toISOString()}`);
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
@@ -97,5 +104,7 @@ export const readRecords = (date: Date): TokenHolderTransaction[] => {
     return [];
   }
 
-  return JSON.parse(readFileSync(filePath, "utf-8")) as TokenHolderTransaction[];
+  return JSON.parse(
+    readFileSync(filePath, "utf-8")
+  ) as TokenHolderTransaction[];
 };

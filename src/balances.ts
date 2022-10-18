@@ -1,9 +1,11 @@
 import Big from "big.js";
 import { existsSync, readFileSync } from "fs";
 import JSONL from "jsonl-parse-stringify";
+import ObjectsToCsv from "objects-to-csv";
 
 import { DATE_EARLIEST } from "./constants";
 import { getISO8601DateString } from "./helpers/date";
+import { isCSVEnabled } from "./helpers/env";
 import { writeFile } from "./helpers/fs";
 import { readRecords } from "./records";
 
@@ -42,6 +44,8 @@ const readBalances = (date: Date): Map<string, TokenHolderBalance> => {
 };
 
 export const generateBalances = async (): Promise<void> => {
+  const shouldOutputCSV = isCSVEnabled();
+
   // Loop through dates
   const startDate = DATE_EARLIEST;
   const finishDate = new Date();
@@ -97,9 +101,11 @@ export const generateBalances = async (): Promise<void> => {
       JSONL.stringify(trimmedBalances)
     );
 
-    // TODO add flag for CSV output
-    // const csvString = await new ObjectsToCsv(trimmedBalances).toString();
-    // writeFile(getBalancesFilePath(currentDate, "csv"), csvString);
+    // Write to CSV
+    if (shouldOutputCSV) {
+      const csvString = await new ObjectsToCsv(trimmedBalances).toString();
+      writeFile(getBalancesFilePath(currentDate, "csv"), csvString);
+    }
 
     // Increment by a day
     currentDate = new Date(currentDate.getTime() + timeDelta);
