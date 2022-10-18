@@ -21,10 +21,10 @@ const fetchGraphQLRecords = async (
   client: Client,
   page: number,
   startDate: Date,
-  finishDate: Date
+  finishDate: Date,
 ): Promise<TokenHolderTransaction[]> => {
   console.debug(
-    `Fetching records for date range ${startDate.toISOString()} - ${finishDate.toISOString()} and page ${page}`
+    `Fetching records for date range ${startDate.toISOString()} - ${finishDate.toISOString()} and page ${page}`,
   );
   const RECORD_COUNT = 1000;
   const queryResults = await client
@@ -38,12 +38,11 @@ const fetchGraphQLRecords = async (
 
   if (!queryResults.data) {
     throw new Error(
-      `Did not receive results from GraphQL query for page ${page}, start date ${startDate.toISOString()}, finish date ${finishDate.toISOString()}`
+      `Did not receive results from GraphQL query for page ${page}, start date ${startDate.toISOString()}, finish date ${finishDate.toISOString()}`,
     );
   }
 
-  const records = queryResults.data
-    .tokenHolderTransactions as TokenHolderTransaction[];
+  const records = queryResults.data.tokenHolderTransactions as TokenHolderTransaction[];
   console.debug(`Received ${records.length} records`);
   // If we haven't hit the page limit...
   if (records.length < 1000) {
@@ -51,12 +50,7 @@ const fetchGraphQLRecords = async (
   }
 
   // Otherwise we recursively fetch the next page
-  const nextRecords = await fetchGraphQLRecords(
-    client,
-    page + 1,
-    startDate,
-    finishDate
-  );
+  const nextRecords = await fetchGraphQLRecords(client, page + 1, startDate, finishDate);
   return [...records, ...nextRecords];
 };
 
@@ -66,10 +60,7 @@ const fetchGraphQLRecords = async (
  * @param client
  * @param date
  */
-export const getGraphQLRecords = async (
-  client: Client,
-  date: Date
-): Promise<TokenHolderTransaction[]> => {
+export const getGraphQLRecords = async (client: Client, date: Date): Promise<TokenHolderTransaction[]> => {
   const timeDelta = 1 * 60 * 60 * 1000; // 1 hours for each loop
 
   // Ensure the starting date is at midnight
@@ -85,23 +76,14 @@ export const getGraphQLRecords = async (
   while (queryStartDate < finalDate) {
     const queryFinishDate = new Date(queryStartDate.getTime() + timeDelta);
 
-    const queryRecords = await fetchGraphQLRecords(
-      client,
-      0,
-      queryStartDate,
-      queryFinishDate
-    );
+    const queryRecords = await fetchGraphQLRecords(client, 0, queryStartDate, queryFinishDate);
     records.push(...queryRecords);
 
     // Increment for the next looo
     queryStartDate = queryFinishDate;
   }
 
-  console.info(
-    `✅ Total of ${records.length} records for date ${getISO8601DateString(
-      date
-    )}`
-  );
+  console.info(`✅ Total of ${records.length} records for date ${getISO8601DateString(date)}`);
   return records;
 };
 
@@ -111,20 +93,11 @@ export const getGraphQLRecords = async (
  * @param client
  * @returns
  */
-export const getLatestTransactionDate = async (
-  client: Client
-): Promise<Date> => {
-  const queryResults = await client
-    .query(LatestTransactionDocument, {})
-    .toPromise();
+export const getLatestTransactionDate = async (client: Client): Promise<Date> => {
+  const queryResults = await client.query(LatestTransactionDocument, {}).toPromise();
 
-  if (
-    !queryResults.data ||
-    queryResults.data.tokenHolderTransactions.length === 0
-  ) {
-    throw new Error(
-      `Did not receive results from GraphQL query for latest transaction`
-    );
+  if (!queryResults.data || queryResults.data.tokenHolderTransactions.length === 0) {
+    throw new Error(`Did not receive results from GraphQL query for latest transaction`);
   }
 
   return new Date(queryResults.data.tokenHolderTransactions[0].date);
@@ -136,20 +109,11 @@ export const getLatestTransactionDate = async (
  * @param client
  * @returns
  */
-export const getEarliestTransactionDate = async (
-  client: Client
-): Promise<Date> => {
-  const queryResults = await client
-    .query(EarliestTransactionDocument, {})
-    .toPromise();
+export const getEarliestTransactionDate = async (client: Client): Promise<Date> => {
+  const queryResults = await client.query(EarliestTransactionDocument, {}).toPromise();
 
-  if (
-    !queryResults.data ||
-    queryResults.data.tokenHolderTransactions.length === 0
-  ) {
-    throw new Error(
-      `Did not receive results from GraphQL query for earliest transaction`
-    );
+  if (!queryResults.data || queryResults.data.tokenHolderTransactions.length === 0) {
+    throw new Error(`Did not receive results from GraphQL query for earliest transaction`);
   }
 
   return new Date(queryResults.data.tokenHolderTransactions[0].date);

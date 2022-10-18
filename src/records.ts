@@ -6,11 +6,7 @@ import { SUBGRAPH_URL } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
 import { getISO8601DateString } from "./helpers/date";
 import { writeFile } from "./helpers/fs";
-import {
-  getEarliestTransactionDate,
-  getGraphQLRecords,
-  getLatestTransactionDate,
-} from "./subgraph";
+import { getEarliestTransactionDate, getGraphQLRecords, getLatestTransactionDate } from "./subgraph";
 
 const recordsPath = "output/records";
 
@@ -18,10 +14,7 @@ const getRecordsFilePath = (date: Date): string => {
   return `${recordsPath}/${getISO8601DateString(date)}.json`;
 };
 
-const getLatestFetchedRecordsDate = (
-  earliestDate: Date,
-  finalDate: Date
-): Date => {
+const getLatestFetchedRecordsDate = (earliestDate: Date, finalDate: Date): Date => {
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
   let currentDate = earliestDate;
 
@@ -104,7 +97,5 @@ export const readRecords = (date: Date): TokenHolderTransaction[] => {
     return [];
   }
 
-  return JSON.parse(
-    readFileSync(filePath, "utf-8")
-  ) as TokenHolderTransaction[];
+  return JSON.parse(readFileSync(filePath, "utf-8")) as TokenHolderTransaction[];
 };

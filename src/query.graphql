@@ -1,29 +1,16 @@
 query EarliestTransaction {
-  tokenHolderTransactions(
-    orderBy: timestamp
-    orderDirection: asc
-    first: 1
-  ) {
+  tokenHolderTransactions(orderBy: timestamp, orderDirection: asc, first: 1) {
     date
   }
 }
 
 query LatestTransaction {
-  tokenHolderTransactions(
-    orderBy: timestamp
-    orderDirection: desc
-    first: 1
-  ) {
+  tokenHolderTransactions(orderBy: timestamp, orderDirection: desc, first: 1) {
     date
   }
 }
 
-query Transactions(
-  $count: Int
-  $skip: Int
-  $startDate: String
-  $finishDate: String
-) {
+query Transactions($count: Int, $skip: Int, $startDate: String, $finishDate: String) {
   tokenHolderTransactions(
     orderBy: timestamp
     orderDirection: asc
