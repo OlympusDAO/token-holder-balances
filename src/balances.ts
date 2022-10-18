@@ -7,7 +7,7 @@ import { DATE_EARLIEST } from "./constants";
 import { getISO8601DateString } from "./helpers/date";
 import { isCSVEnabled } from "./helpers/env";
 import { writeFile } from "./helpers/fs";
-import { readRecords } from "./records";
+import { readRecords } from "./helpers/recordFs";
 
 type TokenHolderBalance = {
   balance: string;
@@ -36,10 +36,7 @@ const readBalances = (date: Date): Map<string, TokenHolderBalance> => {
   const balances = JSON.parse(readFileSync(filePath, "utf-8"));
   // Convert to the required format
   return new Map<string, TokenHolderBalance>(
-    balances.map((balance: TokenHolderBalance) => [
-      getBalanceKey(balance),
-      balance,
-    ])
+    balances.map((balance: TokenHolderBalance) => [getBalanceKey(balance), balance]),
   );
 };
 
@@ -60,11 +57,11 @@ export const generateBalances = async (): Promise<void> => {
     const balances = readBalances(previousDate);
 
     // Iterate over all of the current date's transactions and update balances
-    const currentTransactions = readRecords(currentDate);
-    currentTransactions.forEach((transaction) => {
-      const balanceKey = `${transaction.holder.holder.toString()}/${
-        transaction.holder.token.name
-      }/${transaction.holder.token.blockchain}`;
+    const currentTransactions = await readRecords(currentDate);
+    currentTransactions.forEach(transaction => {
+      const balanceKey = `${transaction.holder.holder.toString()}/${transaction.holder.token.name}/${
+        transaction.holder.token.blockchain
+      }`;
 
       // Fetch the existing balance, or create a new one
       const currentBalance = balances.get(balanceKey) || {
@@ -86,20 +83,11 @@ export const generateBalances = async (): Promise<void> => {
     });
 
     // Trim 0 balances
-    const trimmedBalances = Array.from(balances.values()).filter(
-      (balance) => !new Big(balance.balance).eq(0)
-    );
-    console.info(
-      `  ${trimmedBalances.length} records (${
-        balances.size - trimmedBalances.length
-      } trimmed)`
-    );
+    const trimmedBalances = Array.from(balances.values()).filter(balance => !new Big(balance.balance).eq(0));
+    console.info(`  ${trimmedBalances.length} records (${balances.size - trimmedBalances.length} trimmed)`);
 
     // Write to file
-    writeFile(
-      getBalancesFilePath(currentDate, "jsonl"),
-      JSONL.stringify(trimmedBalances)
-    );
+    writeFile(getBalancesFilePath(currentDate, "jsonl"), JSONL.stringify(trimmedBalances));
 
     // Write to CSV
     if (shouldOutputCSV) {

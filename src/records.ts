@@ -1,34 +1,19 @@
 import { Client, createClient } from "@urql/core";
 import fetch from "cross-fetch";
-import { existsSync, readFileSync } from "fs";
 
 import { SUBGRAPH_URL } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
-import { getISO8601DateString } from "./helpers/date";
 import { getEnvFinalDate } from "./helpers/env";
-import { writeFile } from "./helpers/fs";
-import {
-  getEarliestTransactionDate,
-  getGraphQLRecords,
-  getLatestTransactionDate,
-} from "./subgraph";
+import { recordsFileExists, writeRecords } from "./helpers/recordFs";
+import { getEarliestTransactionDate, getGraphQLRecords, getLatestTransactionDate } from "./subgraph";
 
-const recordsPath = "output/records";
-
-const getRecordsFilePath = (date: Date): string => {
-  return `${recordsPath}/${getISO8601DateString(date)}.json`;
-};
-
-const getLatestFetchedRecordsDate = (
-  earliestDate: Date,
-  finalDate: Date
-): Date => {
+const getLatestFetchedRecordsDate = async (earliestDate: Date, finalDate: Date): Promise<Date> => {
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
   let currentDate = earliestDate;
 
   while (currentDate < finalDate) {
     // If a file doesn't exist, return one day earlier (in case we did not get all records from the day)
-    if (!existsSync(getRecordsFilePath(currentDate))) {
+    if (!(await recordsFileExists(currentDate))) {
       return new Date(currentDate.getTime() - timeDelta);
     }
 
@@ -47,7 +32,7 @@ const getLatestFetchedRecordsDate = (
  */
 const getFinalDate = async (client: Client): Promise<Date> => {
   // Timestamp of the latest transaction record
-  const latestDate = await getLatestTransactionDate(client);
+  const latestDate: Date = await getLatestTransactionDate(client);
 
   // We transform this into midnight of the same day/start of the next day
   const finalDate = new Date(latestDate.getTime() + 24 * 60 * 60 * 1000);
@@ -63,7 +48,7 @@ const getFinalDate = async (client: Client): Promise<Date> => {
  */
 const getEarliestDate = async (client: Client): Promise<Date> => {
   // Timestamp of the earliest transaction record
-  const earliestDate = await getEarliestTransactionDate(client);
+  const earliestDate: Date = await getEarliestTransactionDate(client);
 
   // We transform this into the start of the same day
   const finalDate = new Date(earliestDate.getTime());
@@ -78,33 +63,22 @@ export const getRecords = async (): Promise<void> => {
     fetch,
   });
 
-  const earliestDate = await getEarliestDate(client);
+  const earliestDate: Date = await getEarliestDate(client);
   console.log(`Earliest date is ${earliestDate.toISOString()}`);
-  const finalDate = getEnvFinalDate() || (await getFinalDate(client));
+  const finalDate: Date = getEnvFinalDate() || (await getFinalDate(client));
   console.log(`Final date is ${finalDate.toISOString()}`);
-  let startDate = getLatestFetchedRecordsDate(earliestDate, finalDate);
+  let startDate: Date = await getLatestFetchedRecordsDate(earliestDate, finalDate);
   console.log(`Start date is ${startDate.toISOString()}`);
-  const timeDelta = 24 * 60 * 60 * 1000; // 1 day
+  const timeDelta: number = 24 * 60 * 60 * 1000; // 1 day
 
   // We loop over each day, fetch records and write those to disk
   while (startDate < finalDate) {
-    const records = await getGraphQLRecords(client, startDate);
+    const records: TokenHolderTransaction[] = await getGraphQLRecords(client, startDate);
 
     // Write to file
-    writeFile(getRecordsFilePath(startDate), JSON.stringify(records, null, 2));
+    await writeRecords(records, startDate);
 
     // Increment for the next loop
     startDate = new Date(startDate.getTime() + timeDelta);
   }
-};
-
-export const readRecords = (date: Date): TokenHolderTransaction[] => {
-  const filePath = getRecordsFilePath(date);
-  if (!existsSync(filePath)) {
-    return [];
-  }
-
-  return JSON.parse(
-    readFileSync(filePath, "utf-8")
-  ) as TokenHolderTransaction[];
 };
