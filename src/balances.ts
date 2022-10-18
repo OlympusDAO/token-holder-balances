@@ -1,6 +1,6 @@
 import Big from "big.js";
 import { existsSync, readFileSync } from "fs";
-import ObjectsToCsv from "objects-to-csv";
+import JSONL from "jsonl-parse-stringify";
 
 import { DATE_EARLIEST } from "./constants";
 import { getISO8601DateString } from "./helpers/date";
@@ -93,12 +93,13 @@ export const generateBalances = async (): Promise<void> => {
 
     // Write to file
     writeFile(
-      getBalancesFilePath(currentDate, "json"),
-      JSON.stringify(trimmedBalances, null, 2)
+      getBalancesFilePath(currentDate, "jsonl"),
+      JSONL.stringify(trimmedBalances)
     );
 
-    const csvString = await new ObjectsToCsv(trimmedBalances).toString();
-    writeFile(getBalancesFilePath(currentDate, "csv"), csvString);
+    // TODO add flag for CSV output
+    // const csvString = await new ObjectsToCsv(trimmedBalances).toString();
+    // writeFile(getBalancesFilePath(currentDate, "csv"), csvString);
 
     // Increment by a day
     currentDate = new Date(currentDate.getTime() + timeDelta);

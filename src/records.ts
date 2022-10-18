@@ -80,7 +80,8 @@ export const getRecords = async (): Promise<void> => {
   });
 
   const earliestDate = await getEarliestDate(client);
-  const finalDate = await getFinalDate(client);
+  // TODO add flag for final date
+  const finalDate = new Date("2022-02-01"); //await getFinalDate(client);
   let startDate = getLatestFetchedRecordsDate(earliestDate, finalDate);
   console.log(`Start date is ${startDate.toISOString()}`);
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
