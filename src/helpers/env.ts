@@ -3,11 +3,11 @@ export const validateEnvironment = (): void => {
 };
 
 export const getEnvFinalDate = (): Date | null => {
-  if (!process.env.FINAL_DATE) {
+  if (!process.env.RECORD_FINAL_DATE) {
     return null;
   }
 
-  const envFinalDateString = process.env.FINAL_DATE;
+  const envFinalDateString = process.env.RECORD_FINAL_DATE;
   console.log(`Overriding final date from FINAL_DATE: ${envFinalDateString}`);
   return new Date(envFinalDateString);
 };
