@@ -1,6 +1,7 @@
 import { createClient } from "@urql/core";
 import fetch from "cross-fetch";
 import { existsSync, readFileSync } from "fs";
+
 import { DATE_EARLIEST, DATE_FINAL, SUBGRAPH_URL } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
 import { getISO8601DateString } from "./helpers/date";
