@@ -1,6 +1,8 @@
 import { Client } from "@urql/core";
 
 import {
+  EarliestTransactionDocument,
+  LatestTransactionDocument,
   TokenHolderTransaction,
   TransactionsDocument,
 } from "./graphql/generated";
@@ -101,4 +103,54 @@ export const getGraphQLRecords = async (
     )}`
   );
   return records;
+};
+
+/**
+ * Fetch the date of the latest transaction in the subgraph.
+ *
+ * @param client
+ * @returns
+ */
+export const getLatestTransactionDate = async (
+  client: Client
+): Promise<Date> => {
+  const queryResults = await client
+    .query(LatestTransactionDocument, {})
+    .toPromise();
+
+  if (
+    !queryResults.data ||
+    queryResults.data.tokenHolderTransactions.length === 0
+  ) {
+    throw new Error(
+      `Did not receive results from GraphQL query for latest transaction`
+    );
+  }
+
+  return new Date(queryResults.data.tokenHolderTransactions[0].date);
+};
+
+/**
+ * Fetch the date of the earliest transaction in the subgraph.
+ *
+ * @param client
+ * @returns
+ */
+export const getEarliestTransactionDate = async (
+  client: Client
+): Promise<Date> => {
+  const queryResults = await client
+    .query(EarliestTransactionDocument, {})
+    .toPromise();
+
+  if (
+    !queryResults.data ||
+    queryResults.data.tokenHolderTransactions.length === 0
+  ) {
+    throw new Error(
+      `Did not receive results from GraphQL query for earliest transaction`
+    );
+  }
+
+  return new Date(queryResults.data.tokenHolderTransactions[0].date);
 };

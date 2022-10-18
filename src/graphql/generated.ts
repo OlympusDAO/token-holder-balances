@@ -1,15 +1,9 @@
 import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -496,6 +490,20 @@ export enum _SubgraphErrorPolicy_ {
   Deny = "deny",
 }
 
+export type EarliestTransactionQueryVariables = Exact<{ [key: string]: never }>;
+
+export type EarliestTransactionQuery = {
+  __typename?: "Query";
+  tokenHolderTransactions: Array<{ __typename?: "TokenHolderTransaction"; date: string }>;
+};
+
+export type LatestTransactionQueryVariables = Exact<{ [key: string]: never }>;
+
+export type LatestTransactionQuery = {
+  __typename?: "Query";
+  tokenHolderTransactions: Array<{ __typename?: "TokenHolderTransaction"; date: string }>;
+};
+
 export type TransactionsQueryVariables = Exact<{
   count?: InputMaybe<Scalars["Int"]>;
   skip?: InputMaybe<Scalars["Int"]>;
@@ -522,17 +530,83 @@ export type TransactionsQuery = {
       id: string;
       balance: number;
       holder: Uint8Array;
-      token: {
-        __typename?: "Token";
-        address: Uint8Array;
-        blockchain: string;
-        id: string;
-        name: string;
-      };
+      token: { __typename?: "Token"; address: Uint8Array; blockchain: string; id: string; name: string };
     };
   }>;
 };
 
+export const EarliestTransactionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "EarliestTransaction" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "tokenHolderTransactions" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "orderBy" },
+                value: { kind: "EnumValue", value: "timestamp" },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "orderDirection" },
+                value: { kind: "EnumValue", value: "asc" },
+              },
+              { kind: "Argument", name: { kind: "Name", value: "first" }, value: { kind: "IntValue", value: "1" } },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [{ kind: "Field", name: { kind: "Name", value: "date" } }],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EarliestTransactionQuery, EarliestTransactionQueryVariables>;
+export const LatestTransactionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "LatestTransaction" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "tokenHolderTransactions" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "orderBy" },
+                value: { kind: "EnumValue", value: "timestamp" },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "orderDirection" },
+                value: { kind: "EnumValue", value: "desc" },
+              },
+              { kind: "Argument", name: { kind: "Name", value: "first" }, value: { kind: "IntValue", value: "1" } },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [{ kind: "Field", name: { kind: "Name", value: "date" } }],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<LatestTransactionQuery, LatestTransactionQueryVariables>;
 export const TransactionsDocument = {
   kind: "Document",
   definitions: [
@@ -543,10 +617,7 @@ export const TransactionsDocument = {
       variableDefinitions: [
         {
           kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "count" },
-          },
+          variable: { kind: "Variable", name: { kind: "Name", value: "count" } },
           type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
         },
         {
@@ -556,18 +627,12 @@ export const TransactionsDocument = {
         },
         {
           kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "startDate" },
-          },
+          variable: { kind: "Variable", name: { kind: "Name", value: "startDate" } },
           type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
         },
         {
           kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "finishDate" },
-          },
+          variable: { kind: "Variable", name: { kind: "Name", value: "finishDate" } },
           type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
         },
       ],
@@ -591,18 +656,12 @@ export const TransactionsDocument = {
               {
                 kind: "Argument",
                 name: { kind: "Name", value: "first" },
-                value: {
-                  kind: "Variable",
-                  name: { kind: "Name", value: "count" },
-                },
+                value: { kind: "Variable", name: { kind: "Name", value: "count" } },
               },
               {
                 kind: "Argument",
                 name: { kind: "Name", value: "skip" },
-                value: {
-                  kind: "Variable",
-                  name: { kind: "Name", value: "skip" },
-                },
+                value: { kind: "Variable", name: { kind: "Name", value: "skip" } },
               },
               {
                 kind: "Argument",
@@ -613,18 +672,12 @@ export const TransactionsDocument = {
                     {
                       kind: "ObjectField",
                       name: { kind: "Name", value: "date_gte" },
-                      value: {
-                        kind: "Variable",
-                        name: { kind: "Name", value: "startDate" },
-                      },
+                      value: { kind: "Variable", name: { kind: "Name", value: "startDate" } },
                     },
                     {
                       kind: "ObjectField",
                       name: { kind: "Name", value: "date_lt" },
-                      value: {
-                        kind: "Variable",
-                        name: { kind: "Name", value: "finishDate" },
-                      },
+                      value: { kind: "Variable", name: { kind: "Name", value: "finishDate" } },
                     },
                   ],
                 },
@@ -644,14 +697,8 @@ export const TransactionsDocument = {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "balance" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "holder" },
-                      },
+                      { kind: "Field", name: { kind: "Name", value: "balance" } },
+                      { kind: "Field", name: { kind: "Name", value: "holder" } },
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       {
                         kind: "Field",
@@ -659,22 +706,10 @@ export const TransactionsDocument = {
                         selectionSet: {
                           kind: "SelectionSet",
                           selections: [
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "address" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "blockchain" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "id" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "name" },
-                            },
+                            { kind: "Field", name: { kind: "Name", value: "address" } },
+                            { kind: "Field", name: { kind: "Name", value: "blockchain" } },
+                            { kind: "Field", name: { kind: "Name", value: "id" } },
+                            { kind: "Field", name: { kind: "Name", value: "name" } },
                           ],
                         },
                       },
@@ -682,16 +717,10 @@ export const TransactionsDocument = {
                   },
                 },
                 { kind: "Field", name: { kind: "Name", value: "id" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "previousBalance" },
-                },
+                { kind: "Field", name: { kind: "Name", value: "previousBalance" } },
                 { kind: "Field", name: { kind: "Name", value: "timestamp" } },
                 { kind: "Field", name: { kind: "Name", value: "transaction" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "transactionLogIndex" },
-                },
+                { kind: "Field", name: { kind: "Name", value: "transactionLogIndex" } },
                 { kind: "Field", name: { kind: "Name", value: "type" } },
                 { kind: "Field", name: { kind: "Name", value: "value" } },
               ],
