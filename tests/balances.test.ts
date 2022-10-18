@@ -38,6 +38,7 @@ const createTransaction = (
 const holderAddressOne = "0xf9704b03e94b8c19cfd8a8803d81c95e814d2a44";
 const holderAddressTwo = "0x9a08aaf9d5e5db1f26ed5909cebf2ca2db894113";
 
+// TODO fix balances tests
 describe("balances", () => {
   test("one holder", () => {
     const records: TokenHolderTransaction[] = [
