@@ -1,63 +1,89 @@
 import Big from "big.js";
-import { existsSync, readFileSync } from "fs";
-import JSONL from "jsonl-parse-stringify";
-import ObjectsToCsv from "objects-to-csv";
 
-import { DATE_EARLIEST } from "./constants";
+import { TokenHolderTransaction } from "./graphql/generated";
+import {
+  balancesFileExists,
+  readBalances,
+  TokenHolderBalance,
+  writeBalances,
+  writeBalancesCSV,
+} from "./helpers/balanceFs";
 import { getISO8601DateString } from "./helpers/date";
 import { isCSVEnabled } from "./helpers/env";
-import { writeFile } from "./helpers/fs";
 import { readRecords } from "./helpers/recordFs";
 
-type TokenHolderBalance = {
-  balance: string;
-  blockchain: string;
-  date: string;
-  holder: string;
-  token: string;
-};
-
-const balancesRoot = "output/balances";
-const getBalancesFilePath = (date: Date, suffix: string): string => {
-  return `${balancesRoot}/${getISO8601DateString(date)}.${suffix}`;
-};
-
+/**
+ * Determines the key for a balance map
+ *
+ * @param balance
+ * @returns
+ */
 const getBalanceKey = (balance: TokenHolderBalance): string => {
   return `${balance.holder}/${balance.token}/${balance.blockchain}`;
 };
 
-const readBalances = (date: Date): Map<string, TokenHolderBalance> => {
-  const filePath = getBalancesFilePath(date, "json");
-  if (!existsSync(filePath)) {
-    return new Map<string, TokenHolderBalance>();
-  }
-
-  // Stored as an array of TokenHolderBalance
-  const balances = JSON.parse(readFileSync(filePath, "utf-8"));
+/**
+ * Assign TokenHolderBalance objects to the keys returned by {getBalanceKey}
+ *
+ * @param balances
+ * @returns
+ */
+const getBalanceMap = (balances: TokenHolderBalance[]): Map<string, TokenHolderBalance> => {
   // Convert to the required format
   return new Map<string, TokenHolderBalance>(
     balances.map((balance: TokenHolderBalance) => [getBalanceKey(balance), balance]),
   );
 };
 
-export const generateBalances = async (): Promise<void> => {
+/**
+ * Determines the latest date for which balances have been generated.
+ *
+ * @param earliestDate The earliest date for which balances can be generated
+ * @param transactionDate The date for which transactions have been fetched
+ * @returns
+ */
+export const getLatestBalancesDate = async (earliestDate: Date, transactionDate: Date): Promise<Date> => {
+  console.log("Checking for latest balances");
+  const timeDelta = 24 * 60 * 60 * 1000; // 1 day
+  let currentDate = earliestDate;
+
+  while (currentDate < transactionDate) {
+    if (!(await balancesFileExists(currentDate))) {
+      return currentDate;
+    }
+
+    // Increment
+    currentDate = new Date(currentDate.getTime() + timeDelta);
+  }
+
+  return transactionDate;
+};
+
+/**
+ * Generates balances and writes them
+ *
+ * @param startDate
+ */
+export const generateBalances = async (startDate: Date): Promise<void> => {
   const shouldOutputCSV = isCSVEnabled();
 
+  // Start at the startDate or earlier (if there are no balances)
+  let currentDate: Date = startDate;
+
   // Loop through dates
-  const startDate = DATE_EARLIEST;
   const finishDate = new Date();
   const timeDelta = 24 * 60 * 60 * 1000;
-  let currentDate = startDate;
   while (currentDate <= finishDate) {
     const currentDateString = getISO8601DateString(currentDate);
     console.info(`Calculating balances for ${currentDateString}`);
 
     // Get balances for the previous day
     const previousDate = new Date(currentDate.getTime() - timeDelta);
-    const balances = readBalances(previousDate);
+    const balancesArray: TokenHolderBalance[] = await readBalances(previousDate);
+    const balances: Map<string, TokenHolderBalance> = getBalanceMap(balancesArray);
 
     // Iterate over all of the current date's transactions and update balances
-    const currentTransactions = await readRecords(currentDate);
+    const currentTransactions: TokenHolderTransaction[] = await readRecords(currentDate);
     currentTransactions.forEach(transaction => {
       const balanceKey = `${transaction.holder.holder.toString()}/${transaction.holder.token.name}/${
         transaction.holder.token.blockchain
@@ -86,13 +112,11 @@ export const generateBalances = async (): Promise<void> => {
     const trimmedBalances = Array.from(balances.values()).filter(balance => !new Big(balance.balance).eq(0));
     console.info(`  ${trimmedBalances.length} records (${balances.size - trimmedBalances.length} trimmed)`);
 
-    // Write to file
-    writeFile(getBalancesFilePath(currentDate, "jsonl"), JSONL.stringify(trimmedBalances));
+    await writeBalances(trimmedBalances, currentDate);
 
     // Write to CSV
     if (shouldOutputCSV) {
-      const csvString = await new ObjectsToCsv(trimmedBalances).toString();
-      writeFile(getBalancesFilePath(currentDate, "csv"), csvString);
+      await writeBalancesCSV(trimmedBalances, currentDate);
     }
 
     // Increment by a day

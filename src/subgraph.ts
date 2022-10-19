@@ -118,3 +118,19 @@ export const getEarliestTransactionDate = async (client: Client): Promise<Date> 
 
   return new Date(queryResults.data.tokenHolderTransactions[0].date);
 };
+
+/**
+ * Returns the earliest date for which the subgraph data exists.
+ *
+ * As the subgraph query is performed from a certain date (>= 2022-10-18T00:00:00Z),
+ * the Date returned by this function will be the start of the day of the earliest record.
+ */
+export const getEarliestTransactionDateStart = async (client: Client): Promise<Date> => {
+  // Timestamp of the earliest transaction record
+  const earliestDate: Date = await getEarliestTransactionDate(client);
+
+  // We transform this into the start of the same day
+  const finalDate = new Date(earliestDate.getTime());
+  finalDate.setUTCHours(0, 0, 0, 0);
+  return finalDate;
+};

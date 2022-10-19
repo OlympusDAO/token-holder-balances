@@ -1,24 +1,22 @@
-import { Client, createClient } from "@urql/core";
-import fetch from "cross-fetch";
+import { Client } from "@urql/core";
 
-import { SUBGRAPH_URL } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
-import { getEnvFinalDate } from "./helpers/env";
 import { recordsFileExists, writeRecords } from "./helpers/recordFs";
-import { getEarliestTransactionDate, getGraphQLRecords, getLatestTransactionDate } from "./subgraph";
+import { getGraphQLRecords, getLatestTransactionDate } from "./subgraph";
 
-const getLatestFetchedRecordsDate = async (earliestDate: Date, finalDate: Date): Promise<Date> => {
+export const getLatestFetchedRecordsDate = async (earliestDate: Date, finalDate: Date): Promise<Date> => {
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
-  let currentDate = earliestDate;
+  let currentDate = finalDate;
 
-  while (currentDate < finalDate) {
+  // Work from finalDate backwards, which should be quicker than earliestDate -> finalDate
+  while (currentDate >= earliestDate) {
     // If a file doesn't exist, return one day earlier (in case we did not get all records from the day)
     if (!(await recordsFileExists(currentDate))) {
       return new Date(currentDate.getTime() - timeDelta);
     }
 
-    // Increment
-    currentDate = new Date(currentDate.getTime() + timeDelta);
+    // Decrement
+    currentDate = new Date(currentDate.getTime() - timeDelta);
   }
 
   return finalDate;
@@ -30,9 +28,9 @@ const getLatestFetchedRecordsDate = async (earliestDate: Date, finalDate: Date):
  * As the subgraph query is performed up to a certain date (< 2022-10-18T00:00:00Z),
  * the Date returned by this function will be one day after the timestamp of the latest record.
  */
-const getFinalDate = async (client: Client): Promise<Date> => {
+export const getFinalDate = async (subgraphClient: Client): Promise<Date> => {
   // Timestamp of the latest transaction record
-  const latestDate: Date = await getLatestTransactionDate(client);
+  const latestDate: Date = await getLatestTransactionDate(subgraphClient);
 
   // We transform this into midnight of the same day/start of the next day
   const finalDate = new Date(latestDate.getTime() + 24 * 60 * 60 * 1000);
@@ -41,44 +39,25 @@ const getFinalDate = async (client: Client): Promise<Date> => {
 };
 
 /**
- * Returns the earliest date for which the subgraph data exists.
+ * Fetches transaction records and writes them.
  *
- * As the subgraph query is performed from a certain date (>= 2022-10-18T00:00:00Z),
- * the Date returned by this function will be the start of the day of the earliest record.
+ * @param client GraphQL client
+ * @param startDate The date from which to fetch records
+ * @param finalDate The date up to which records will be fetched
  */
-const getEarliestDate = async (client: Client): Promise<Date> => {
-  // Timestamp of the earliest transaction record
-  const earliestDate: Date = await getEarliestTransactionDate(client);
-
-  // We transform this into the start of the same day
-  const finalDate = new Date(earliestDate.getTime());
-  finalDate.setUTCHours(0, 0, 0, 0);
-  return finalDate;
-};
-
-export const getRecords = async (): Promise<void> => {
+export const getRecords = async (client: Client, startDate: Date, finalDate: Date): Promise<void> => {
   console.info(`Fetching records`);
-  const client = createClient({
-    url: SUBGRAPH_URL,
-    fetch,
-  });
-
-  const earliestDate: Date = await getEarliestDate(client);
-  console.log(`Earliest date is ${earliestDate.toISOString()}`);
-  const finalDate: Date = getEnvFinalDate() || (await getFinalDate(client));
-  console.log(`Final date is ${finalDate.toISOString()}`);
-  let startDate: Date = await getLatestFetchedRecordsDate(earliestDate, finalDate);
-  console.log(`Start date is ${startDate.toISOString()}`);
   const timeDelta: number = 24 * 60 * 60 * 1000; // 1 day
+  let currentDate: Date = startDate;
 
   // We loop over each day, fetch records and write those to disk
-  while (startDate < finalDate) {
-    const records: TokenHolderTransaction[] = await getGraphQLRecords(client, startDate);
+  while (currentDate < finalDate) {
+    const records: TokenHolderTransaction[] = await getGraphQLRecords(client, currentDate);
 
     // Write to file
-    await writeRecords(records, startDate);
+    await writeRecords(records, currentDate);
 
     // Increment for the next loop
-    startDate = new Date(startDate.getTime() + timeDelta);
+    currentDate = new Date(currentDate.getTime() + timeDelta);
   }
 };
