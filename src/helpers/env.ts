@@ -3,8 +3,6 @@ dotenv.config();
 
 export const validateEnvironment = (): void => {
   getGCSBucket();
-
-  getBQDataset();
 };
 
 export const getEnvFinalDate = (): Date | null => {
@@ -29,12 +27,4 @@ export const getGCSBucket = (): string => {
   }
 
   return process.env.GCS_BUCKET;
-};
-
-export const getBQDataset = (): string => {
-  if (!process.env.BQ_DATASET || process.env.BQ_DATASET.length === 0) {
-    throw new Error("BQ_DATASET environment variable must be defined");
-  }
-
-  return process.env.BQ_DATASET;
 };

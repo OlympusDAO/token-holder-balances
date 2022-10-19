@@ -1,10 +1,6 @@
 declare namespace NodeJS {
   export interface ProcessEnv {
     /**
-     * Dataset in BigQuery
-     */
-    BQ_DATASET: string;
-    /**
      * Name of the storage bucket in Google Cloud Storage
      */
     GCS_BUCKET: string;
