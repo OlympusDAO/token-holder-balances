@@ -43,7 +43,7 @@ const getBalanceMap = (balances: TokenHolderBalance[]): Map<string, TokenHolderB
  * @returns
  */
 export const getLatestBalancesDate = async (earliestDate: Date, transactionDate: Date): Promise<Date> => {
-  console.log("Checking for latest balances");
+  console.log("\n\nChecking for latest balances");
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
   let currentDate = earliestDate;
 

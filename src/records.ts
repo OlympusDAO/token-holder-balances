@@ -46,7 +46,7 @@ export const getFinalDate = async (subgraphClient: Client): Promise<Date> => {
  * @param finalDate The date up to which records will be fetched
  */
 export const getRecords = async (client: Client, startDate: Date, finalDate: Date): Promise<void> => {
-  console.info(`Fetching records`);
+  console.info(`\n\nFetching records`);
   const timeDelta: number = 24 * 60 * 60 * 1000; // 1 day
   let currentDate: Date = startDate;
 
