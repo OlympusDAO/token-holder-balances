@@ -50,12 +50,12 @@ resource "google_bigquery_table" "balances" {
       autodetect    = false
       schema        = file("${path.module}/balances_schema.json")
       source_format = "NEWLINE_DELIMITED_JSON"
-      source_uris   = [ "olympusdao-token-holders-${data.external.git-branch.result.branch}/output/balances/*" ]
+      source_uris   = [ "gs://olympusdao-token-holders-${data.external.git-branch.result.branch}/output/balances/*" ]
 
       # We can automatically partition the data, since it is structured in the format of:
       # /output/balances/dt=<YYYY-MM-DD>/balances.jsonl
       hive_partitioning_options {
-        source_uri_prefix       = "olympusdao-token-holders-${data.external.git-branch.result.branch}/output/balances"
+        source_uri_prefix       = "gs://olympusdao-token-holders-${data.external.git-branch.result.branch}/output/balances"
       }
     }
 }
