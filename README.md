@@ -40,3 +40,11 @@ Terraform is used to ensure that the state of the infrastructure in Google Cloud
 Note:
 
 - The Google Cloud Storage bucket and BigQuery dataset must be located in the same region
+
+Steps:
+
+- Run `yarn terraform init` on first-run
+- Run `yarn terraform plan` to see pending changes
+- Run `yarn terraform apply` to apply changes (this requires authentication with GCP first)
+
+Running `yarn terraform` ensurs that you are acting on the correct directory.

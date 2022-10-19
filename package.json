@@ -8,7 +8,8 @@
     "codegen": "graphql-codegen",
     "execute": "ts-node src/index.ts",
     "lint": "eslint --config ./.eslintrc.js ./src/ --ext .jsx,.js,.tsx,.ts",
-    "lint:fix": "prettier --write ./src/ & yarn lint --fix"
+    "lint:fix": "prettier --write ./src/ & yarn lint --fix",
+    "terraform": "terraform -chdir=terraform/"
   },
   "keywords": [],
   "author": "",
