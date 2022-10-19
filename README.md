@@ -22,6 +22,11 @@ Within BigQuery:
 
 3. BigQuery is configured to have an external table that uses the stored balances as a data source
 
+## Local Development Setup
+
+1. Run `yarn`
+2. Install `terraform` if you need to set up infrastructure in Google Cloud Platform
+
 ## Local Development - Google Cloud Setup
 
 1. Install the `gcloud` tool using your preferred method: https://cloud.google.com/sdk/docs/install
