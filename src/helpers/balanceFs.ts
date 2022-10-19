@@ -15,7 +15,7 @@ export type TokenHolderBalance = {
 
 const balancesRoot = "output/balances";
 const getBalancesFilePath = (date: Date, suffix: string): string => {
-  return `${balancesRoot}/${getISO8601DateString(date)}.${suffix}`;
+  return `${balancesRoot}/dt=${getISO8601DateString(date)}/balances.${suffix}`;
 };
 
 export const readBalances = async (date: Date): Promise<TokenHolderBalance[]> => {

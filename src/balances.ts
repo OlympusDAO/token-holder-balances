@@ -80,9 +80,14 @@ export const generateBalances = async (startDate: Date): Promise<void> => {
     // Get balances for the previous day
     const previousDate = new Date(currentDate.getTime() - timeDelta);
     const balancesArray: TokenHolderBalance[] = await readBalances(previousDate);
-    const balances: Map<string, TokenHolderBalance> = getBalanceMap(balancesArray);
+
+    // Change the date on all existing balances
+    balancesArray.forEach(balance => {
+      balance.date = currentDateString;
+    });
 
     // Iterate over all of the current date's transactions and update balances
+    const balances: Map<string, TokenHolderBalance> = getBalanceMap(balancesArray);
     const currentTransactions: TokenHolderTransaction[] = await readRecords(currentDate);
     currentTransactions.forEach(transaction => {
       const balanceKey = `${transaction.holder.holder.toString()}/${transaction.holder.token.name}/${
@@ -98,7 +103,6 @@ export const generateBalances = async (startDate: Date): Promise<void> => {
         token: transaction.holder.token.name,
       };
 
-      currentBalance.date = currentDateString;
       // We use big.js here to ensure accuracy with floating point numbers
       currentBalance.balance = new Big(currentBalance.balance)
         .add(new Big(transaction.value))
