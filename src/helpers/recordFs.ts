@@ -22,7 +22,7 @@ const getRecordsFilePath = (date: Date): string => {
 export const readRecords = async (date: Date): Promise<TokenHolderTransaction[]> => {
   const filePath = getRecordsFilePath(date);
   const file = getFile(getGCSBucket(), filePath);
-  if (!(await file.exists())) {
+  if (!(await file.exists())[0]) {
     return [];
   }
 
