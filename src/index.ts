@@ -1,4 +1,4 @@
-import { Request, Response } from "@google-cloud/functions-framework";
+import { CloudFunctionsContext, Request, Response } from "@google-cloud/functions-framework";
 import { createClient } from "@urql/core";
 import fetch from "cross-fetch";
 
@@ -32,11 +32,21 @@ async function run() {
   await generateBalances(balancesDate);
 }
 
-// Called by Google Cloud Functions
+// HTTP trigger by Google Cloud Functions
 exports.fetch = async (_req: Request, res: Response) => {
+  console.log("Manual trigger");
+
   await run();
 
   return res.status(200).send("Success");
+};
+
+// Called by PubSub
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+exports.fetchScheduled = async (cloudEvent: CloudFunctionsContext) => {
+  console.log("Trigger by scheduled job");
+
+  await run();
 };
 
 if (require.main === module) {

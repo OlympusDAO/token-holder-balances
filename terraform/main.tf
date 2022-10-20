@@ -63,4 +63,19 @@ resource "google_bigquery_table" "balances" {
     }
 }
 
-# service account
+# Pub/Sub Topic
+resource "google_pubsub_topic" "topic" {
+    name        = "token-holders-${data.external.git-branch.result.branch}"
+}
+
+# Scheduler
+resource "google_cloud_scheduler_job" "job" {
+    name        = "token-holders-job-${data.external.git-branch.result.branch}"
+    schedule    = "0 * * * *" # Run every hour
+    time_zone   = "UTC"
+
+    pubsub_target {
+      topic_name  = google_pubsub_topic.topic.id
+      data = base64encode("empty")
+    }
+}

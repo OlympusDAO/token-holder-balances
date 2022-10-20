@@ -13,7 +13,7 @@
     "terraform": "terraform -chdir=terraform/",
     "build": "tsc",
     "predeploy": "yarn build && cp package.json build/ && cp yarn.lock build/",
-    "deploy": "gcloud functions deploy token-holder-balances-$(git rev-parse --abbrev-ref HEAD) --gen2 --runtime=nodejs16 --region=us-east1 --source=build/ --entry-point=fetch --trigger-http --allow-unauthenticated --set-env-vars GCS_BUCKET=olympusdao-token-holders-$(git rev-parse --abbrev-ref HEAD) --max-instances 1"
+    "deploy": "gcloud functions deploy token-holder-balances-$(git rev-parse --abbrev-ref HEAD) --gen2 --runtime=nodejs16 --region=us-east1 --source=build/ --entry-point=fetchScheduled --trigger-topic=token-holders-$(git rev-parse --abbrev-ref HEAD) --set-env-vars GCS_BUCKET=olympusdao-token-holders-$(git rev-parse --abbrev-ref HEAD),RECORD_FINAL_DATE=\"2022-01-01\" --max-instances 1 --memory=1GiB --timeout=540"
   },
   "keywords": [],
   "author": "",

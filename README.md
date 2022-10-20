@@ -26,12 +26,9 @@ Within BigQuery:
 
 1. Run `yarn`
 2. Install `terraform` if you need to set up infrastructure in Google Cloud Platform
-
-## Local Development - Google Cloud Setup
-
-1. Install the `gcloud` tool using your preferred method: https://cloud.google.com/sdk/docs/install
-2. Run `gcloud init`
-3. Set up the default authentication: `gcloud auth application-default login`
+3. Install the `gcloud` tool using your preferred method: https://cloud.google.com/sdk/docs/install
+4. Run `gcloud init`
+5. Set up the default authentication: `gcloud auth application-default login`
 
 ## Google Cloud Setup
 
@@ -49,3 +46,9 @@ Steps:
 - Run `yarn terraform apply` to apply changes (this requires authentication with GCP first)
 
 Running `yarn terraform` ensurs that you are acting on the correct directory.
+
+## Subgraph Changes
+
+Transactions are stored in a Google Cloud Storage bucket, to avoid having to fetch the data (and dramatically extend execution time) on each run.
+
+If a new subgraph version is deployed that changes historical data (such as a new token being indexed, or a different calcultion being used), this function will not (yet) detect those changes. To force re-fetching of the transactions, delete the `output/records/` directory in the `olympusdao-token-holders-<GIT BRANCH>` bucket. Balances will be re-calculated automatically.
