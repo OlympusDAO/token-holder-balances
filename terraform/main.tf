@@ -5,6 +5,14 @@ terraform {
         version = ">= 4.41.0"
       }
     }
+
+  cloud {
+    organization = "OlympusDAO"
+
+    workspaces {
+      name      = "token-holder-balances"
+    }
+  }
 }
 
 variable "region" {
