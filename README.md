@@ -40,13 +40,11 @@ Terraform is used to ensure that the state of the infrastructure in Google Cloud
 Note:
 
 - The Google Cloud Storage bucket and BigQuery dataset must be located in the same region. This is enforced in the Terraform configuration
-- Terraform state is shared through Terraform Cloud, which is free for up to 5 users
-- Terraform is configured to run locally (which reduces the need for saving authentication details in Terraform Cloud)
-- The Terraform infrastructure is configured to use the git branch in the resources, so they are not clobbered
+- Terraform state is stored in a Google Cloud Storage bucket, `olympusdao-terraform-tfstate`, with the state stored under a directory corresponding to the current git branch. 
 
 Steps:
 
-- Run `yarn terraform init` on first-run
+- Run `yarn terraform:init` on first-run. This will pull the state for the current branch.
 - Run `yarn terraform plan` to see pending changes
 - Run `yarn terraform apply` to apply changes (this requires authentication with GCP first)
 

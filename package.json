@@ -9,6 +9,7 @@
     "execute": "ts-node src/index.ts",
     "lint": "eslint --config ./.eslintrc.js ./src/ --ext .jsx,.js,.tsx,.ts",
     "lint:fix": "prettier --write ./src/ & yarn lint --fix",
+    "terraform:init": "cd terraform && ./terraform_init.sh",
     "terraform": "terraform -chdir=terraform/"
   },
   "keywords": [],

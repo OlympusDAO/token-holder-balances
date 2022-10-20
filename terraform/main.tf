@@ -6,13 +6,8 @@ terraform {
       }
     }
 
-  cloud {
-    organization = "OlympusDAO"
-
-    workspaces {
-      name      = "token-holder-balances"
-    }
-  }
+    # Configuration input via *.tfbackend files. Use `yarn terraform:init`
+    backend "gcs" {}
 }
 
 variable "region" {
