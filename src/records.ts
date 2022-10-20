@@ -10,8 +10,8 @@ export const getLatestFetchedRecordsDate = async (earliestDate: Date, finalDate:
 
   // Work from finalDate backwards, which should be quicker than earliestDate -> finalDate
   while (currentDate >= earliestDate) {
-    // If a file doesn't exist, return one day earlier (in case we did not get all records from the day)
-    if (!(await recordsFileExists(currentDate))) {
+    // If a file exists, return one day earlier (in case we did not get all records from the day)
+    if (await recordsFileExists(currentDate)) {
       return new Date(currentDate.getTime() - timeDelta);
     }
 
@@ -19,7 +19,7 @@ export const getLatestFetchedRecordsDate = async (earliestDate: Date, finalDate:
     currentDate = new Date(currentDate.getTime() - timeDelta);
   }
 
-  return finalDate;
+  return earliestDate;
 };
 
 /**
