@@ -6,7 +6,7 @@ export const validateEnvironment = (): void => {
 };
 
 export const getEnvFinalDate = (): Date | null => {
-  if (!process.env.RECORD_FINAL_DATE) {
+  if (!process.env.RECORD_FINAL_DATE || process.env.RECORD_FINAL_DATE.length === 0) {
     return null;
   }
 
