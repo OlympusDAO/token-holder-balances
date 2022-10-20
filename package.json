@@ -2,7 +2,7 @@
   "name": "nodejs",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "index.js",
   "scripts": {
     "test": "jest",
     "codegen": "graphql-codegen",
@@ -10,12 +10,16 @@
     "lint": "eslint --config ./.eslintrc.js ./src/ --ext .jsx,.js,.tsx,.ts",
     "lint:fix": "prettier --write ./src/ & yarn lint --fix",
     "terraform:init": "cd terraform && ./terraform_init.sh",
-    "terraform": "terraform -chdir=terraform/"
+    "terraform": "terraform -chdir=terraform/",
+    "build": "tsc",
+    "predeploy": "yarn build && cp package.json build/ && cp yarn.lock build/",
+    "deploy": "gcloud functions deploy token-holder-balances-$(git rev-parse --abbrev-ref HEAD) --gen2 --runtime=nodejs16 --region=us-east1 --source=build/ --entry-point=fetch --trigger-http --allow-unauthenticated"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/functions-framework": "^3.1.2",
     "@google-cloud/storage": "^6.5.2",
     "@urql/core": "^3.0.3",
     "big.js": "^6.2.1",

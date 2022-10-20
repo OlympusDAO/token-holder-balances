@@ -1,3 +1,4 @@
+import { Request, Response } from "@google-cloud/functions-framework";
 import { createClient } from "@urql/core";
 import fetch from "cross-fetch";
 
@@ -7,7 +8,7 @@ import { getEnvFinalDate, validateEnvironment } from "./helpers/env";
 import { getFinalDate, getLatestFetchedRecordsDate, getRecords } from "./records";
 import { getEarliestTransactionDateStart } from "./subgraph";
 
-async function main() {
+async function run() {
   validateEnvironment();
 
   const client = createClient({
@@ -31,6 +32,13 @@ async function main() {
   await generateBalances(balancesDate);
 }
 
+// Called by Google Cloud Functions
+exports.fetch = async (_req: Request, res: Response) => {
+  await run();
+
+  return res.status(200).send("Success");
+};
+
 if (require.main === module) {
-  main();
+  run();
 }
