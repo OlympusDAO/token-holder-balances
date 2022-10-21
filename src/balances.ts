@@ -1,15 +1,13 @@
 import Big from "big.js";
-
 import { TokenHolderTransaction } from "./graphql/generated";
+
 import {
   balancesFileExists,
   readBalances,
   TokenHolderBalance,
   writeBalances,
-  writeBalancesCSV,
 } from "./helpers/balanceFs";
 import { getISO8601DateString } from "./helpers/date";
-import { isCSVEnabled } from "./helpers/env";
 import { readRecords } from "./helpers/recordFs";
 
 /**
@@ -42,13 +40,13 @@ const getBalanceMap = (balances: TokenHolderBalance[]): Map<string, TokenHolderB
  * @param transactionDate The date for which transactions have been fetched
  * @returns
  */
-export const getLatestBalancesDate = async (earliestDate: Date, transactionDate: Date): Promise<Date> => {
+export const getLatestBalancesDate = async (bucketName: string, earliestDate: Date, transactionDate: Date): Promise<Date> => {
   console.log("\n\nChecking for latest balances");
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
   let currentDate = earliestDate;
 
   while (currentDate < transactionDate) {
-    if (!(await balancesFileExists(currentDate))) {
+    if (!(await balancesFileExists(bucketName, currentDate))) {
       return currentDate;
     }
 
@@ -64,9 +62,7 @@ export const getLatestBalancesDate = async (earliestDate: Date, transactionDate:
  *
  * @param startDate
  */
-export const generateBalances = async (startDate: Date): Promise<void> => {
-  const shouldOutputCSV = isCSVEnabled();
-
+export const generateBalances = async (bucketName: string, startDate: Date): Promise<void> => {
   // Start at the startDate or earlier (if there are no balances)
   let currentDate: Date = startDate;
 
@@ -79,7 +75,7 @@ export const generateBalances = async (startDate: Date): Promise<void> => {
 
     // Get balances for the previous day
     const previousDate = new Date(currentDate.getTime() - timeDelta);
-    const balancesArray: TokenHolderBalance[] = await readBalances(previousDate);
+    const balancesArray: TokenHolderBalance[] = await readBalances(bucketName, previousDate);
 
     // Change the date on all existing balances
     balancesArray.forEach(balance => {
@@ -116,12 +112,7 @@ export const generateBalances = async (startDate: Date): Promise<void> => {
     const trimmedBalances = Array.from(balances.values()).filter(balance => !new Big(balance.balance).eq(0));
     console.info(`  ${trimmedBalances.length} records (${balances.size - trimmedBalances.length} trimmed)`);
 
-    await writeBalances(trimmedBalances, currentDate);
-
-    // Write to CSV
-    if (shouldOutputCSV) {
-      await writeBalancesCSV(trimmedBalances, currentDate);
-    }
+    await writeBalances(bucketName, trimmedBalances, currentDate);
 
     // Increment by a day
     currentDate = new Date(currentDate.getTime() + timeDelta);
