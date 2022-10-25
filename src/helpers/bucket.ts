@@ -1,25 +1,34 @@
-import { File, Storage } from "@google-cloud/storage";
+import { Bucket, File, Storage } from "@google-cloud/storage";
 
-export const getFile = (bucketName: string, fileName: string): File => {
+const getBucket = async (bucketName: string): Promise<Bucket> => {
   const storage = new Storage();
   const bucket = storage.bucket(bucketName);
+  if (!(await bucket.exists())[0]) {
+    throw new Error(`Bucket ${bucketName} does not exist`);
+  }
+
+  return bucket;
+}
+
+export const getFile = async (bucketName: string, fileName: string): Promise<File> => {
+  const bucket: Bucket = await getBucket(bucketName);
   const file = bucket.file(fileName);
   return file;
 };
 
 export const putFile = async (bucketName: string, fileName: string, fileContents: string): Promise<void> => {
-  const file = getFile(bucketName, fileName);
+  const file: File = await getFile(bucketName, fileName);
   await file.save(fileContents);
 };
 
 export const fileExists = async (bucketName: string, fileName: string): Promise<boolean> => {
-  const file = getFile(bucketName, fileName);
+  const file: File = await getFile(bucketName, fileName);
   return (await file.exists())[0];
 };
 
+// Will return the full path, e.g. `token-balances/dt=2021-01-01/dummy.jsonl
 export const listFiles = async (bucketName: string, path: string): Promise<string[]> => {
-  const storage = new Storage();
-  const bucket = storage.bucket(bucketName);
+  const bucket: Bucket = await getBucket(bucketName);
   const [files] = await bucket.getFiles({ prefix:path });
   return files.map(file => file.name);
 }

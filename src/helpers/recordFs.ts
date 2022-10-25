@@ -1,11 +1,13 @@
+import { File } from "@google-cloud/storage";
+import JSONL from "jsonl-parse-stringify";
 import { TokenHolderTransaction } from "../graphql/generated";
 import { fileExists, getFile, listFiles, putFile } from "./bucket";
 import { getISO8601DateString } from "./date";
+import { extractPartitionKey } from "./fs";
 
 const getRecordsFilePath = (storagePrefix: string, date: Date, suffix: string): string => {
   return `${storagePrefix}/dt=${getISO8601DateString(date)}/records.${suffix}`;
 };
-
 
 /**
  * Reads the TokenHolderTransaction records for the given date.
@@ -19,25 +21,14 @@ const getRecordsFilePath = (storagePrefix: string, date: Date, suffix: string): 
  */
 export const readRecords = async (storagePrefix: string, bucket: string, date: Date): Promise<TokenHolderTransaction[]> => {
   const filePath = getRecordsFilePath(storagePrefix, date, "jsonl");
-  const file = getFile(bucket, filePath);
+  console.log(`Grabbing file ${filePath} in bucket ${bucket}`);
+  const file: File = await getFile(bucket, filePath);
   if (!(await file.exists())[0]) {
+    console.log(`Records file ${filePath} does not exist. Returning empty array.`);
     return [];
   }
 
-  return JSON.parse((await file.download())[0].toString("utf-8")) as TokenHolderTransaction[];
-};
-
-/**
- * Writes the TokenHolderTransaction records for the given date.
- *
- * Currently this is written to Google Cloud Storage, however the
- * destination may change in the future. The function is designed
- * to abstract the storage layer.
- */
-export const writeRecords = async (storagePrefix: string, bucket: string, records: TokenHolderTransaction[], date: Date): Promise<void> => {
-  const fileName = getRecordsFilePath(storagePrefix, date, "jsonl");
-
-  await putFile(bucket, fileName, JSON.stringify(records));
+  return JSONL.parse((await file.download())[0].toString("utf-8")) as TokenHolderTransaction[];
 };
 
 /**
@@ -48,11 +39,28 @@ export const recordsFileExists = async (storagePrefix: string, bucket: string, d
   return await fileExists(bucket, filePath);
 };
 
-export const getLatestRecordsDate = async (bucket: string, path: string): Promise<Date> => {
+export const getLatestRecordsDate = async (bucket: string, path: string): Promise<Date | null> => {
   const fileNames = await listFiles(bucket, path);
   if (fileNames.length === 0) {
-    throw new Error(`Expected record files to be present in ${bucket}/${path}, but there were none`);
+    return null;
   }
 
-  return fileNames.map(fileName => new Date(fileName.split(".")[0] /* Before the file extension */)).sort((a, b) => b.getTime() - a.getTime())[0];
+  // Excludes the dummy file
+  const recordsFileNames = fileNames.filter((fileName) => fileName.includes("records"));
+  const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
+  const sortedFileDates = fileDates.sort((a, b) => b.getTime() - a.getTime());
+  return sortedFileDates[0];
+}
+
+export const getEarliestRecordsDate = async (bucket: string, path: string): Promise<Date | null> => {
+  const fileNames = await listFiles(bucket, path);
+  if (fileNames.length === 0) {
+    return null;
+  }
+
+  // Excludes the dummy file
+  const recordsFileNames = fileNames.filter((fileName) => fileName.includes("records"));
+  const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
+  const sortedFileDates = fileDates.sort((a, b) => b.getTime() - a.getTime());
+  return sortedFileDates[sortedFileDates.length - 1];
 }

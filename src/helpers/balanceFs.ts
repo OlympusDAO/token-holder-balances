@@ -1,3 +1,4 @@
+import { File } from "@google-cloud/storage";
 import JSONL from "jsonl-parse-stringify";
 
 import { fileExists, getFile, putFile } from "./bucket";
@@ -17,8 +18,10 @@ const getBalancesFilePath = (storagePrefix: string, date: Date, suffix: string):
 
 export const readBalances = async (storagePrefix: string, bucketName: string, date: Date): Promise<TokenHolderBalance[]> => {
   const filePath = getBalancesFilePath(storagePrefix, date, "jsonl");
-  const file = getFile(bucketName, filePath);
+  console.log(`Grabbing file ${filePath} in bucket ${bucketName}`);
+  const file: File = await getFile(bucketName, filePath);
   if (!(await file.exists())[0]) {
+    console.log(`Balances file ${filePath} does not exist. Returning empty array.`);
     return [];
   }
 
