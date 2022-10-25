@@ -1,0 +1,3 @@
+config:
+  gcp:project: utility-descent-365911
+  gcp:region: us-central1

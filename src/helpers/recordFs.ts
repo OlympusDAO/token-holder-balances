@@ -1,13 +1,11 @@
 import { TokenHolderTransaction } from "../graphql/generated";
-import { fileExists, getFile, putFile } from "./bucket";
+import { fileExists, getFile, listFiles, putFile } from "./bucket";
 import { getISO8601DateString } from "./date";
-import { getGCSBucket } from "./env";
 
-const recordsPath = "output/records";
-
-const getRecordsFilePath = (date: Date): string => {
-  return `${recordsPath}/${getISO8601DateString(date)}.json`;
+const getRecordsFilePath = (storagePrefix: string, date: Date, suffix: string): string => {
+  return `${storagePrefix}/dt=${getISO8601DateString(date)}/records.${suffix}`;
 };
+
 
 /**
  * Reads the TokenHolderTransaction records for the given date.
@@ -19,9 +17,9 @@ const getRecordsFilePath = (date: Date): string => {
  * @param date
  * @returns
  */
-export const readRecords = async (date: Date): Promise<TokenHolderTransaction[]> => {
-  const filePath = getRecordsFilePath(date);
-  const file = getFile(getGCSBucket(), filePath);
+export const readRecords = async (storagePrefix: string, bucket: string, date: Date): Promise<TokenHolderTransaction[]> => {
+  const filePath = getRecordsFilePath(storagePrefix, date, "jsonl");
+  const file = getFile(bucket, filePath);
   if (!(await file.exists())[0]) {
     return [];
   }
@@ -36,16 +34,25 @@ export const readRecords = async (date: Date): Promise<TokenHolderTransaction[]>
  * destination may change in the future. The function is designed
  * to abstract the storage layer.
  */
-export const writeRecords = async (records: TokenHolderTransaction[], date: Date): Promise<void> => {
-  const fileName = getRecordsFilePath(date);
+export const writeRecords = async (storagePrefix: string, bucket: string, records: TokenHolderTransaction[], date: Date): Promise<void> => {
+  const fileName = getRecordsFilePath(storagePrefix, date, "jsonl");
 
-  await putFile(getGCSBucket(), fileName, JSON.stringify(records));
+  await putFile(bucket, fileName, JSON.stringify(records));
 };
 
 /**
  * Determines if the records file for the given date exists.
  */
-export const recordsFileExists = async (date: Date): Promise<boolean> => {
-  const filePath = getRecordsFilePath(date);
-  return await fileExists(getGCSBucket(), filePath);
+export const recordsFileExists = async (storagePrefix: string, bucket: string, date: Date): Promise<boolean> => {
+  const filePath = getRecordsFilePath(storagePrefix, date, "jsonl");
+  return await fileExists(bucket, filePath);
 };
+
+export const getLatestRecordsDate = async (bucket: string, path: string): Promise<Date> => {
+  const fileNames = await listFiles(bucket, path);
+  if (fileNames.length === 0) {
+    throw new Error(`Expected record files to be present in ${bucket}/${path}, but there were none`);
+  }
+
+  return fileNames.map(fileName => new Date(fileName.split(".")[0] /* Before the file extension */)).sort((a, b) => b.getTime() - a.getTime())[0];
+}

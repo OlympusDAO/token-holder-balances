@@ -16,3 +16,10 @@ export const fileExists = async (bucketName: string, fileName: string): Promise<
   const file = getFile(bucketName, fileName);
   return (await file.exists())[0];
 };
+
+export const listFiles = async (bucketName: string, path: string): Promise<string[]> => {
+  const storage = new Storage();
+  const bucket = storage.bucket(bucketName);
+  const [files] = await bucket.getFiles({ prefix:path });
+  return files.map(file => file.name);
+}

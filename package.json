@@ -16,7 +16,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/functions-framework": "^3.1.2",
     "@google-cloud/storage": "^6.5.2",
     "@urql/core": "^3.0.3",
     "big.js": "^6.2.1",
@@ -24,7 +23,7 @@
     "dotenv": "^16.0.3",
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
-    "jsonl-parse-stringify": "^1.0.3",
+    "jsonl-parse-stringify": "^1.0.3"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^2.12.2",
@@ -33,6 +32,8 @@
     "@graphql-codegen/typescript": "^2.7.3",
     "@graphql-codegen/typescript-operations": "^2.5.3",
     "@graphql-typed-document-node/core": "^3.1.1",
+    "@pulumi/gcp": "^6.0.0",
+    "@pulumi/pulumi": "^3.0.0",
     "@types/big.js": "^6.1.6",
     "@types/jest": "^29.0.3",
     "@types/node": "^18.7.23",
