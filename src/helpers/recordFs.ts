@@ -43,7 +43,7 @@ export const getLatestRecordsDate = async (bucket: string, path: string): Promis
   }
 
   // Excludes the dummy file
-  const recordsFileNames = fileNames.filter(fileName => fileName.includes("records"));
+  const recordsFileNames = fileNames.filter(fileName => fileName.includes("records.jsonl"));
   const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
   const sortedFileDates = fileDates.sort((a, b) => b.getTime() - a.getTime());
   return sortedFileDates[0];
@@ -56,7 +56,7 @@ export const getEarliestRecordsDate = async (bucket: string, path: string): Prom
   }
 
   // Excludes the dummy file
-  const recordsFileNames = fileNames.filter(fileName => fileName.includes("records"));
+  const recordsFileNames = fileNames.filter(fileName => fileName.includes("records.jsonl"));
   const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
   const sortedFileDates = fileDates.sort((a, b) => b.getTime() - a.getTime());
   return sortedFileDates[sortedFileDates.length - 1];

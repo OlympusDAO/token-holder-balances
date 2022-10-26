@@ -67,7 +67,7 @@ export const getLatestBalanceDate = async (bucketName: string, storagePrefix: st
   }
 
   // Excludes the dummy file
-  const recordsFileNames = fileNames.filter(fileName => fileName.includes("balances"));
+  const recordsFileNames = fileNames.filter(fileName => fileName.includes("balances.jsonl"));
   const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
   const latestDate = fileDates.sort((a, b) => b.getTime() - a.getTime())[0];
   return latestDate;
