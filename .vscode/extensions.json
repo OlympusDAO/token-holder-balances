@@ -1,6 +1,5 @@
 {
     "recommendations": [
-        "hashicorp.terraform",
         "rvest.vs-code-prettier-eslint",
         "dbaeumer.vscode-eslint",
         "mquandalle.graphql",
