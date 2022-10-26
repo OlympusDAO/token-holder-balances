@@ -46,6 +46,10 @@ const tokenHolderFunction = new gcp.cloudfunctions.HttpCallbackFunction(function
   callback: async (req, res) => {
     console.log("Received callback. Initiating handler.");
     await handler(FUNCTION_PREFIX, storageBucket.name.get(), RECORDS_BUCKET_PREFIX, RECORDS_BUCKET_NAME, functionTimeoutSeconds, req);
+    console.log("before");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (<any>res).send("OK");
+    console.log("after");
   },
 });
 
@@ -101,7 +105,7 @@ const dummyObject = new gcp.storage.BucketObject("dummy", {
 });
 
 /**
- * Create a BigQuery external table
+ * Create a BigQuery external table for balance records
  */
 const bigQueryDataset = new gcp.bigquery.Dataset(BUCKET_NAME_PREFIX, {
   datasetId: BUCKET_NAME_PREFIX.replace(/-/g, "_"), // - is unsupported
@@ -111,13 +115,12 @@ export const bigQueryDatasetId = bigQueryDataset.datasetId;
 
 // storageBucketUrl is not known until deploy-time, so we use a pulumi-provided function to utilise it
 // Source: https://www.pulumi.com/docs/intro/concepts/inputs-outputs/#apply
-const sourceUriPrefix = storageBucketUrl.apply(url => `${url}/${FUNCTION_PREFIX}/`);
-const sourceUri = storageBucketUrl.apply(url => `${url}/${FUNCTION_PREFIX}/*`);
+const tokenBalancesSourceUri = storageBucketUrl.apply(url => `${url}/${FUNCTION_PREFIX}/*`);
 
 // For the moment, we generate a BigQuery schema file and store it locally
-const bigQuerySchemaJson = readFileSync("bigquery_schema.json").toString("utf-8");
+const tokenBalancesSchema = readFileSync("schema-token-balances.json").toString("utf-8");
 
-const bigQueryTable = new gcp.bigquery.Table(
+const tokenBalancesTable = new gcp.bigquery.Table(
   FUNCTION_PREFIX,
   {
     datasetId: bigQueryDatasetId,
@@ -125,16 +128,55 @@ const bigQueryTable = new gcp.bigquery.Table(
     deletionProtection: false,
     externalDataConfiguration: {
       sourceFormat: "NEWLINE_DELIMITED_JSON",
-      sourceUris: [sourceUri],
+      sourceUris: [tokenBalancesSourceUri],
       hivePartitioningOptions: {
         mode: "AUTO",
-        sourceUriPrefix: sourceUriPrefix,
+        sourceUriPrefix: tokenBalancesSourceUri,
       },
       autodetect: false,
-      schema: bigQuerySchemaJson,
+      schema: tokenBalancesSchema,
     },
   },
   { dependsOn: dummyObject },
 );
 
-export const bigQueryTableId = bigQueryTable.tableId;
+export const bigQueryTableId = tokenBalancesTable.tableId;
+
+/**
+ * Upload the contract addresses to the GCS bucket
+ */
+const contractAddressesBucketPrefix = "contract-addresses";
+const contractAddressesObject = new gcp.storage.BucketObject("contract-addresses", {
+  bucket: storageBucket.name,
+  content: readFileSync("addresses.csv").toString(),
+  name: `${contractAddressesBucketPrefix}/addresses.csv`,
+});
+
+const contractAddressesSourceUri = storageBucketUrl.apply(url => `${url}/${contractAddressesBucketPrefix}/*`);
+
+/**
+ * Create a BigQuery external table for contract names
+ */
+ const contractAddressesSchema = readFileSync("schema-contract-addresses.json").toString("utf-8");
+
+ const contractAddressesTable = new gcp.bigquery.Table(
+   "contract-addresses",
+   {
+     datasetId: bigQueryDatasetId,
+     tableId: "contract-addresses",
+     deletionProtection: false,
+     externalDataConfiguration: {
+       sourceFormat: "CSV",
+       sourceUris: [contractAddressesSourceUri],
+       autodetect: false,
+       schema: contractAddressesSchema,
+       csvOptions: {
+        quote: "\"",
+        skipLeadingRows: 1,
+       }
+     },
+   },
+   { dependsOn: contractAddressesObject },
+ );
+
+ export const contractAddressesTableId = contractAddressesTable.tableId;

@@ -1,0 +1,38 @@
+[
+    {
+        "name": "Address",
+        "mode": "REQUIRED",
+        "type": "STRING",
+        "fields": []
+    },
+    {
+        "name": "Etherscan URL",
+        "mode": "REQUIRED",
+        "type": "STRING",
+        "fields": []
+    },
+    {
+        "name": "Page title",
+        "mode": "REQUIRED",
+        "type": "STRING",
+        "fields": []
+    },
+    {
+        "name": "Name",
+        "mode": "REQUIRED",
+        "type": "STRING",
+        "fields": []
+    },
+    {
+        "name": "Type",
+        "mode": "REQUIRED",
+        "type": "STRING",
+        "fields": []
+    },
+    {
+        "name": "Custom Name",
+        "mode": "REQUIRED",
+        "type": "BOOL",
+        "fields": []
+    }
+]
