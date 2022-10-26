@@ -1,2 +1,0 @@
-bucket    = "olympusdao-terraform-tfstate"
-prefix    = "token-holder-balances/dev/"
