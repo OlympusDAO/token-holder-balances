@@ -45,7 +45,14 @@ const tokenHolderFunction = new gcp.cloudfunctions.HttpCallbackFunction(function
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: async (req, res) => {
     console.log("Received callback. Initiating handler.");
-    await handler(FUNCTION_PREFIX, storageBucket.name.get(), RECORDS_BUCKET_PREFIX, RECORDS_BUCKET_NAME, functionTimeoutSeconds, req);
+    await handler(
+      FUNCTION_PREFIX,
+      storageBucket.name.get(),
+      RECORDS_BUCKET_PREFIX,
+      RECORDS_BUCKET_NAME,
+      functionTimeoutSeconds,
+      req,
+    );
     console.log("before");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (<any>res).send("OK");
@@ -62,11 +69,11 @@ export const functionUrl = tokenHolderFunction.httpsTriggerUrl;
  */
 const pubSubDeadLetter = new gcp.pubsub.Topic(`${PUBSUB_TOPIC}-deadLetter`, {});
 
-const expirationSeconds = 24*60*60;
+const expirationSeconds = 24 * 60 * 60;
 const pubSubSubscription = new gcp.pubsub.Subscription(functionName, {
   topic: PUBSUB_TOPIC,
   pushConfig: {
-    pushEndpoint: functionUrl
+    pushEndpoint: functionUrl,
   },
   // If there is an issue, give up quickly, as it will be picked up later
   deadLetterPolicy: {
@@ -140,7 +147,7 @@ const tokenBalancesTable = new gcp.bigquery.Table(
   { dependsOn: dummyObject },
 );
 
-export const bigQueryTableId = tokenBalancesTable.tableId;
+export const tokenBalancesTableId = tokenBalancesTable.tableId;
 
 /**
  * Upload the contract addresses to the GCS bucket
@@ -157,26 +164,53 @@ const contractAddressesSourceUri = storageBucketUrl.apply(url => `${url}/${contr
 /**
  * Create a BigQuery external table for contract names
  */
- const contractAddressesSchema = readFileSync("schema-contract-addresses.json").toString("utf-8");
+const contractAddressesSchema = readFileSync("schema-contract-addresses.json").toString("utf-8");
 
- const contractAddressesTable = new gcp.bigquery.Table(
-   "contract-addresses",
-   {
-     datasetId: bigQueryDatasetId,
-     tableId: "contract-addresses",
-     deletionProtection: false,
-     externalDataConfiguration: {
-       sourceFormat: "CSV",
-       sourceUris: [contractAddressesSourceUri],
-       autodetect: false,
-       schema: contractAddressesSchema,
-       csvOptions: {
-        quote: "\"",
+const contractAddressesTable = new gcp.bigquery.Table(
+  "contract-addresses",
+  {
+    datasetId: bigQueryDatasetId,
+    tableId: "contract-addresses",
+    deletionProtection: false,
+    externalDataConfiguration: {
+      sourceFormat: "CSV",
+      sourceUris: [contractAddressesSourceUri],
+      autodetect: false,
+      schema: contractAddressesSchema,
+      csvOptions: {
+        quote: '"',
         skipLeadingRows: 1,
-       }
-     },
-   },
-   { dependsOn: contractAddressesObject },
- );
+      },
+    },
+  },
+  { dependsOn: contractAddressesObject },
+);
 
- export const contractAddressesTableId = contractAddressesTable.tableId;
+export const contractAddressesTableId = contractAddressesTable.tableId;
+
+/**
+ * Create a BigQuery materialized view with the token balances and contract names
+ */
+const tokenBalancesNamedTable = new gcp.bigquery.Table(
+  "token-balances-named",
+  {
+    datasetId: bigQueryDatasetId,
+    tableId: "token-balances-named",
+    deletionProtection: false,
+    materializedView: {
+      query: `
+        SELECT 
+        balances.*, 
+        IF(addresses.Custom_Name, addresses.Name, balances.holder) AS holder_name,
+        IFNULL(addresses.Type, "Unknown") AS holder_type,
+        FROM \`${pulumi.getProject()}.${bigQueryDatasetId}.${tokenBalancesTableId}\` as balances
+        LEFT JOIN \`${bigQueryDatasetId}.${contractAddressesTableId}\` as addresses ON addresses.Address = balances.holder
+      `,
+    },
+  },
+  { dependsOn: [contractAddressesTable, tokenBalancesTable] },
+);
+
+export const tokenBalancesNamedTableId = tokenBalancesNamedTable.tableId;
+
+// TODO Add note on max instances
