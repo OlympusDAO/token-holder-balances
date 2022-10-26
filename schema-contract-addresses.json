@@ -6,13 +6,13 @@
         "fields": []
     },
     {
-        "name": "Etherscan URL",
+        "name": "Etherscan_URL",
         "mode": "REQUIRED",
         "type": "STRING",
         "fields": []
     },
     {
-        "name": "Page title",
+        "name": "Page_Title",
         "mode": "REQUIRED",
         "type": "STRING",
         "fields": []
@@ -30,9 +30,9 @@
         "fields": []
     },
     {
-        "name": "Custom Name",
+        "name": "Custom_Name",
         "mode": "REQUIRED",
-        "type": "BOOL",
+        "type": "BOOLEAN",
         "fields": []
     }
 ]
