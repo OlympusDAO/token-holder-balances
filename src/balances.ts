@@ -1,13 +1,8 @@
 import Big from "big.js";
+
 import { IShouldTerminate } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
-
-import {
-  balancesFileExists,
-  readBalances,
-  TokenHolderBalance,
-  writeBalances,
-} from "./helpers/balanceFs";
+import { balancesFileExists, readBalances, TokenHolderBalance, writeBalances } from "./helpers/balanceFs";
 import { listFiles } from "./helpers/bucket";
 import { getISO8601DateString } from "./helpers/date";
 import { extractPartitionKey } from "./helpers/fs";
@@ -43,7 +38,12 @@ const getBalanceMap = (balances: TokenHolderBalance[]): Map<string, TokenHolderB
  * @param transactionDate The date for which transactions have been fetched
  * @returns
  */
-export const getLatestBalancesDate = async (storagePrefix: string, bucketName: string, earliestDate: Date, transactionDate: Date): Promise<Date> => {
+export const getLatestBalancesDate = async (
+  storagePrefix: string,
+  bucketName: string,
+  earliestDate: Date,
+  transactionDate: Date,
+): Promise<Date> => {
   console.log("\n\nChecking for latest balances");
   const timeDelta = 24 * 60 * 60 * 1000; // 1 day
   let currentDate = earliestDate;
@@ -67,18 +67,25 @@ export const getLatestBalanceDate = async (bucketName: string, storagePrefix: st
   }
 
   // Excludes the dummy file
-  const recordsFileNames = fileNames.filter((fileName) => fileName.includes("balances"));
+  const recordsFileNames = fileNames.filter(fileName => fileName.includes("balances"));
   const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
   const latestDate = fileDates.sort((a, b) => b.getTime() - a.getTime())[0];
   return latestDate;
-}
+};
 
 /**
  * Generates balances and writes them
  *
  * @param startDate
  */
-export const generateBalances = async (balancesBucketName: string, balancesBucketPrefix: string, recordsBucketName: string, recordsBucketPrefix: string, startDate: Date, shouldTerminate: IShouldTerminate): Promise<void> => {
+export const generateBalances = async (
+  balancesBucketName: string,
+  balancesBucketPrefix: string,
+  recordsBucketName: string,
+  recordsBucketPrefix: string,
+  startDate: Date,
+  shouldTerminate: IShouldTerminate,
+): Promise<void> => {
   // Start at the startDate or earlier (if there are no balances)
   let currentDate: Date = startDate;
 
@@ -91,7 +98,11 @@ export const generateBalances = async (balancesBucketName: string, balancesBucke
 
     // Get balances for the previous day
     const previousDate = new Date(currentDate.getTime() - timeDelta);
-    const balancesArray: TokenHolderBalance[] = await readBalances(balancesBucketPrefix, balancesBucketName, previousDate);
+    const balancesArray: TokenHolderBalance[] = await readBalances(
+      balancesBucketPrefix,
+      balancesBucketName,
+      previousDate,
+    );
 
     // Change the date on all existing balances
     balancesArray.forEach(balance => {
@@ -100,7 +111,11 @@ export const generateBalances = async (balancesBucketName: string, balancesBucke
 
     // Iterate over all of the current date's transactions and update balances
     const balances: Map<string, TokenHolderBalance> = getBalanceMap(balancesArray);
-    const currentTransactions: TokenHolderTransaction[] = await readRecords(recordsBucketPrefix, recordsBucketName, currentDate);
+    const currentTransactions: TokenHolderTransaction[] = await readRecords(
+      recordsBucketPrefix,
+      recordsBucketName,
+      currentDate,
+    );
     console.log(`${currentTransactions.length} transactions for date ${getISO8601DateString(currentDate)}`);
 
     currentTransactions.forEach(transaction => {

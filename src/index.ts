@@ -1,9 +1,15 @@
-
 import { generateBalances, getLatestBalanceDate } from "./balances";
 import { getPubSubMessage } from "./helpers/pubsub";
 import { getEarliestRecordsDate } from "./helpers/recordFs";
 
-export const handler = async (balancesBucketPrefix: string, balancesBucketName: string, recordsBucketPrefix: string, recordsBucketName: string, functionTimeoutSeconds: number, req: unknown): Promise<void> => {
+export const handler = async (
+  balancesBucketPrefix: string,
+  balancesBucketName: string,
+  recordsBucketPrefix: string,
+  recordsBucketName: string,
+  functionTimeoutSeconds: number,
+  req: unknown,
+): Promise<void> => {
   console.log(`Bucket name: ${balancesBucketName}`);
 
   const initialTimestamp = new Date().getTime();
@@ -12,13 +18,13 @@ export const handler = async (balancesBucketPrefix: string, balancesBucketName: 
     const currentTimestamp = new Date().getTime();
 
     // If the current time is > initialTimestamp + functionTimeoutSeconds*1000 - buffer, exit
-    if (currentTimestamp > initialTimestamp + (functionTimeoutSeconds*1000) - BUFFER_MS) {
+    if (currentTimestamp > initialTimestamp + functionTimeoutSeconds * 1000 - BUFFER_MS) {
       console.log(`Current timestamp ${currentTimestamp} is outside of buffer. Exiting.`);
       return true;
     }
 
     return false;
-  }
+  };
 
   // Determine from the request if we have received a PubSub message
   const pubSubMessage: Record<string, string> = getPubSubMessage(req);
@@ -47,7 +53,7 @@ export const handler = async (balancesBucketPrefix: string, balancesBucketName: 
 
     // Otherwise use the last balance date
     return latestBalanceDate;
-  }
+  };
 
   const startDate: Date | null = getStartDate();
   if (!startDate) {
@@ -56,10 +62,24 @@ export const handler = async (balancesBucketPrefix: string, balancesBucketName: 
   }
 
   console.log(`Start date is ${startDate.toISOString()}`);
-  await generateBalances(balancesBucketName, balancesBucketPrefix, recordsBucketName, recordsBucketPrefix, startDate, shouldTerminate);
+  await generateBalances(
+    balancesBucketName,
+    balancesBucketPrefix,
+    recordsBucketName,
+    recordsBucketPrefix,
+    startDate,
+    shouldTerminate,
+  );
 };
 
 // Run locally using `yarn execute`. Inputs may need to be changed if re-deployments occur.
 if (require.main === module) {
-  handler("token-balances", "olympusdao-token-balances-dev-561e14f", "token-holders-transactions", "olympusdao-subgraph-cache-prod-f962a96", 540, {});
+  handler(
+    "token-balances",
+    "olympusdao-token-balances-dev-561e14f",
+    "token-holders-transactions",
+    "olympusdao-subgraph-cache-prod-f962a96",
+    540,
+    {},
+  );
 }

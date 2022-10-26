@@ -1,7 +1,8 @@
 import { File } from "@google-cloud/storage";
 import JSONL from "jsonl-parse-stringify";
+
 import { TokenHolderTransaction } from "../graphql/generated";
-import { fileExists, getFile, listFiles, putFile } from "./bucket";
+import { getFile, listFiles } from "./bucket";
 import { getISO8601DateString } from "./date";
 import { extractPartitionKey } from "./fs";
 
@@ -19,7 +20,11 @@ const getRecordsFilePath = (storagePrefix: string, date: Date, suffix: string): 
  * @param date
  * @returns
  */
-export const readRecords = async (storagePrefix: string, bucket: string, date: Date): Promise<TokenHolderTransaction[]> => {
+export const readRecords = async (
+  storagePrefix: string,
+  bucket: string,
+  date: Date,
+): Promise<TokenHolderTransaction[]> => {
   const filePath = getRecordsFilePath(storagePrefix, date, "jsonl");
   console.log(`Grabbing file ${filePath} in bucket ${bucket}`);
   const file: File = await getFile(bucket, filePath);
@@ -38,11 +43,11 @@ export const getLatestRecordsDate = async (bucket: string, path: string): Promis
   }
 
   // Excludes the dummy file
-  const recordsFileNames = fileNames.filter((fileName) => fileName.includes("records"));
+  const recordsFileNames = fileNames.filter(fileName => fileName.includes("records"));
   const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
   const sortedFileDates = fileDates.sort((a, b) => b.getTime() - a.getTime());
   return sortedFileDates[0];
-}
+};
 
 export const getEarliestRecordsDate = async (bucket: string, path: string): Promise<Date | null> => {
   const fileNames = await listFiles(bucket, path);
@@ -51,8 +56,8 @@ export const getEarliestRecordsDate = async (bucket: string, path: string): Prom
   }
 
   // Excludes the dummy file
-  const recordsFileNames = fileNames.filter((fileName) => fileName.includes("records"));
+  const recordsFileNames = fileNames.filter(fileName => fileName.includes("records"));
   const fileDates = recordsFileNames.map(fileName => new Date(extractPartitionKey(fileName)));
   const sortedFileDates = fileDates.sort((a, b) => b.getTime() - a.getTime());
   return sortedFileDates[sortedFileDates.length - 1];
-}
+};

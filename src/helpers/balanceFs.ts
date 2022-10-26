@@ -16,7 +16,11 @@ const getBalancesFilePath = (storagePrefix: string, date: Date, suffix: string):
   return `${storagePrefix}/dt=${getISO8601DateString(date)}/balances.${suffix}`;
 };
 
-export const readBalances = async (storagePrefix: string, bucketName: string, date: Date): Promise<TokenHolderBalance[]> => {
+export const readBalances = async (
+  storagePrefix: string,
+  bucketName: string,
+  date: Date,
+): Promise<TokenHolderBalance[]> => {
   const filePath = getBalancesFilePath(storagePrefix, date, "jsonl");
   console.log(`Grabbing file ${filePath} in bucket ${bucketName}`);
   const file: File = await getFile(bucketName, filePath);
@@ -28,13 +32,18 @@ export const readBalances = async (storagePrefix: string, bucketName: string, da
   return JSONL.parse((await file.download())[0].toString("utf-8")) as TokenHolderBalance[];
 };
 
-export const writeBalances = async (storagePrefix: string, bucketName: string, balances: TokenHolderBalance[], date: Date): Promise<void> => {
+export const writeBalances = async (
+  storagePrefix: string,
+  bucketName: string,
+  balances: TokenHolderBalance[],
+  date: Date,
+): Promise<void> => {
   const filePath = getBalancesFilePath(storagePrefix, date, "jsonl");
   await putFile(bucketName, filePath, JSONL.stringify(balances));
   console.log(`Wrote balances to ${filePath}`);
 };
 
-export const balancesFileExists = async (storagePrefix: string,bucketName: string, date: Date): Promise<boolean> => {
+export const balancesFileExists = async (storagePrefix: string, bucketName: string, date: Date): Promise<boolean> => {
   const filePath = getBalancesFilePath(storagePrefix, date, "jsonl");
   return await fileExists(bucketName, filePath);
 };

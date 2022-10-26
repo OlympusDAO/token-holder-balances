@@ -8,7 +8,7 @@ const getBucket = async (bucketName: string): Promise<Bucket> => {
   }
 
   return bucket;
-}
+};
 
 export const getFile = async (bucketName: string, fileName: string): Promise<File> => {
   const bucket: Bucket = await getBucket(bucketName);
@@ -29,6 +29,6 @@ export const fileExists = async (bucketName: string, fileName: string): Promise<
 // Will return the full path, e.g. `token-balances/dt=2021-01-01/dummy.jsonl
 export const listFiles = async (bucketName: string, path: string): Promise<string[]> => {
   const bucket: Bucket = await getBucket(bucketName);
-  const [files] = await bucket.getFiles({ prefix:path });
+  const [files] = await bucket.getFiles({ prefix: path });
   return files.map(file => file.name);
-}
+};

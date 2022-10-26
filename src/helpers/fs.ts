@@ -19,4 +19,4 @@ export const extractPartitionKey = (filePath: string): string => {
 
   // Split into ["token-balances/dt=", "2021-01-01"]
   return directoryPath.split("dt=")[1];
-}
+};
