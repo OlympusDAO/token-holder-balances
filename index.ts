@@ -4,10 +4,16 @@ import { readFileSync } from "fs";
 
 import { handler } from "./src/index";
 
-// TODO shift to stack variable
-const RECORDS_BUCKET_NAME = "olympusdao-subgraph-cache-prod-f962a96"; // Copied manually from subgraph-cache ouput
-const RECORDS_BUCKET_PREFIX = "token-holders-transactions";
-const PUBSUB_TOPIC = "token-holders-transactions-prod-8a6361b"; // Copied manually from subgraph-cache ouput
+const pulumiConfig = new pulumi.Config();
+
+const RECORDS_BUCKET_NAME = pulumiConfig.get("bucketName");
+if (!RECORDS_BUCKET_NAME) throw new Error("bucketName must be set");
+
+const RECORDS_BUCKET_PREFIX = pulumiConfig.get("bucketPrefix");
+if (!RECORDS_BUCKET_PREFIX) throw new Error("bucketPrefix must be set");
+
+const PUBSUB_TOPIC = pulumiConfig.get("pubSubTopic");
+if (!PUBSUB_TOPIC) throw new Error("pubSubTopic must be set");
 
 const BUCKET_NAME_PREFIX = `olympusdao-token-balances-${pulumi.getStack()}`;
 const FUNCTION_PREFIX = `token-balances`;

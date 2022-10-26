@@ -1,3 +1,6 @@
 config:
   gcp:project: utility-descent-365911
   gcp:region: us-central1
+  token-balances:bucketName: olympusdao-subgraph-cache-prod-f962a96 # Copied manually from subgraph-cache ouput
+  token-balances:bucketPrefix: token-holders-transactions
+  token-balances:pubSubTopic: token-holders-transactions-prod-8a6361b # Copied manually from subgraph-cache ouput
