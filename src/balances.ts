@@ -1,4 +1,5 @@
 import Big from "big.js";
+import { IShouldTerminate } from "./constants";
 import { TokenHolderTransaction } from "./graphql/generated";
 
 import {
@@ -77,7 +78,7 @@ export const getLatestBalanceDate = async (bucketName: string, storagePrefix: st
  *
  * @param startDate
  */
-export const generateBalances = async (balancesBucketName: string, balancesBucketPrefix: string, recordsBucketName: string, recordsBucketPrefix: string, startDate: Date): Promise<void> => {
+export const generateBalances = async (balancesBucketName: string, balancesBucketPrefix: string, recordsBucketName: string, recordsBucketPrefix: string, startDate: Date, shouldTerminate: IShouldTerminate): Promise<void> => {
   // Start at the startDate or earlier (if there are no balances)
   let currentDate: Date = startDate;
 
@@ -131,7 +132,14 @@ export const generateBalances = async (balancesBucketName: string, balancesBucke
 
     await writeBalances(balancesBucketPrefix, balancesBucketName, trimmedBalances, currentDate);
 
+    // Check the execution time remaining and exit
+    if (shouldTerminate()) {
+      break;
+    }
+
     // Increment by a day
     currentDate = new Date(currentDate.getTime() + timeDelta);
   }
+
+  console.log(`Finished generating balances until ${getISO8601DateString(currentDate)}`);
 };

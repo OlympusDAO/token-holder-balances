@@ -29,7 +29,9 @@ export const readBalances = async (storagePrefix: string, bucketName: string, da
 };
 
 export const writeBalances = async (storagePrefix: string, bucketName: string, balances: TokenHolderBalance[], date: Date): Promise<void> => {
-  await putFile(bucketName, getBalancesFilePath(storagePrefix, date, "jsonl"), JSONL.stringify(balances));
+  const filePath = getBalancesFilePath(storagePrefix, date, "jsonl");
+  await putFile(bucketName, filePath, JSONL.stringify(balances));
+  console.log(`Wrote balances to ${filePath}`);
 };
 
 export const balancesFileExists = async (storagePrefix: string,bucketName: string, date: Date): Promise<boolean> => {

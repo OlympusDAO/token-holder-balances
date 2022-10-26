@@ -31,14 +31,6 @@ export const readRecords = async (storagePrefix: string, bucket: string, date: D
   return JSONL.parse((await file.download())[0].toString("utf-8")) as TokenHolderTransaction[];
 };
 
-/**
- * Determines if the records file for the given date exists.
- */
-export const recordsFileExists = async (storagePrefix: string, bucket: string, date: Date): Promise<boolean> => {
-  const filePath = getRecordsFilePath(storagePrefix, date, "jsonl");
-  return await fileExists(bucket, filePath);
-};
-
 export const getLatestRecordsDate = async (bucket: string, path: string): Promise<Date | null> => {
   const fileNames = await listFiles(bucket, path);
   if (fileNames.length === 0) {

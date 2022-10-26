@@ -5,8 +5,9 @@ import { readFileSync } from "fs";
 import { handler } from "./src/index";
 
 // TODO shift to stack variable
-const RECORDS_BUCKET_NAME = "olympusdao-subgraph-cache-prod-f962a96";
+const RECORDS_BUCKET_NAME = "olympusdao-subgraph-cache-prod-f962a96"; // Copied manually from subgraph-cache ouput
 const RECORDS_BUCKET_PREFIX = "token-holders-transactions";
+const PUBSUB_TOPIC = "token-holders-transactions-prod-8a6361b"; // Copied manually from subgraph-cache ouput
 
 const BUCKET_NAME_PREFIX = `olympusdao-token-balances-${pulumi.getStack()}`;
 const FUNCTION_PREFIX = `token-balances`;
@@ -28,19 +29,45 @@ export const storageBucketUrl = storageBucket.url;
 /**
  * Execution: Google Cloud Functions
  */
+const functionTimeoutSeconds = 540;
+
 // Create a function
 const tokenHolderFunction = new gcp.cloudfunctions.HttpCallbackFunction(functionName, {
   runtime: "nodejs14",
-  timeout: 540,
+  timeout: functionTimeoutSeconds,
   availableMemoryMb: 1024,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  callback: async (req: Express.Request, res: Express.Response) => {
+  callback: async (req, res) => {
     console.log("Received callback. Initiating handler.");
-    await handler(FUNCTION_PREFIX, storageBucket.name.get(), RECORDS_BUCKET_PREFIX, RECORDS_BUCKET_NAME);
+    await handler(FUNCTION_PREFIX, storageBucket.name.get(), RECORDS_BUCKET_PREFIX, RECORDS_BUCKET_NAME, functionTimeoutSeconds, req);
   },
 });
 
 export const functionUrl = tokenHolderFunction.httpsTriggerUrl;
+
+// TODO set max instances
+
+/**
+ * Subscribe to PubSub events
+ */
+const pubSubDeadLetter = new gcp.pubsub.Topic(`${PUBSUB_TOPIC}-deadLetter`, {});
+
+const expirationSeconds = 24*60*60;
+const pubSubSubscription = new gcp.pubsub.Subscription(functionName, {
+  topic: PUBSUB_TOPIC,
+  pushConfig: {
+    pushEndpoint: functionUrl
+  },
+  // If there is an issue, give up quickly, as it will be picked up later
+  deadLetterPolicy: {
+    deadLetterTopic: pubSubDeadLetter.id,
+    maxDeliveryAttempts: 5, // Lowest possible value
+  },
+  expirationPolicy: { ttl: `${expirationSeconds}s` },
+  messageRetentionDuration: `${expirationSeconds}s`,
+});
+
+export const pubSubSubscriptionName = pubSubSubscription.name;
 
 /**
  * Scheduling: Cloud Scheduler
