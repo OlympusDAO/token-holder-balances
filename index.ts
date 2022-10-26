@@ -50,10 +50,8 @@ const tokenBalancesFunction = new gcp.cloudfunctions.HttpCallbackFunction(functi
       functionTimeoutSeconds,
       req,
     );
-    console.log("before");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (<any>res).send("OK");
-    console.log("after");
   },
 });
 
