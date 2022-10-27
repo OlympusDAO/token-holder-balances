@@ -2,7 +2,7 @@ import { v1 } from "@google-cloud/pubsub";
 
 export const getEarliestStartDate = async (subscriptionName: string): Promise<Date | null> => {
   const subscriptionClient = new v1.SubscriberClient();
-  const [response] = await subscriptionClient.pull({ subscription: subscriptionName });
+  const [response] = await subscriptionClient.pull({ subscription: subscriptionName, maxMessages: 10 });
   const ackIds: string[] = [];
   let earliestStartDate: Date | null = null;
 

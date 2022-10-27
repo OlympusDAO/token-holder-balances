@@ -67,7 +67,7 @@ const tokenBalancesFunction = new gcp.cloudfunctions.HttpCallbackFunction(
         RECORDS_BUCKET_PREFIX,
         RECORDS_BUCKET_NAME,
         functionTimeoutSeconds,
-        pubSubSubscriptionName.get(),
+        pubSubSubscription.id.get(),
       );
       // It's not documented in the Pulumi documentation, but the function will timeout if `.end()` is missing.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
