@@ -30,62 +30,54 @@ const tokenBalancesBucket = new gcp.storage.Bucket(BUCKET_NAME_PREFIX, {
 export const tokenBalancesBucketUrl = tokenBalancesBucket.url;
 
 /**
- * Execution: Google Cloud Functions
+ * Create a subscription to the PubSub topic that is defined in the subgraph-cache project and fired whenever transactions are stored.
+ *
+ * This is configured as a pull subscription, as the Cloud Function will check these messages upon its normally-scheduled run.
+ * Why not push? If there is any error (e.g. a timeout), it tends to create an ever-increasing number of messages,
+ * which spawn functions.
  */
-const functionTimeoutSeconds = 540;
-
-// Create a function
-const tokenBalancesFunction = new gcp.cloudfunctions.HttpCallbackFunction(functionName, {
-  runtime: "nodejs14",
-  timeout: functionTimeoutSeconds,
-  availableMemoryMb: 1024,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  callback: async (req, res) => {
-    console.log("Received callback. Initiating handler.");
-    await handler(
-      FUNCTION_PREFIX,
-      tokenBalancesBucket.name.get(),
-      RECORDS_BUCKET_PREFIX,
-      RECORDS_BUCKET_NAME,
-      functionTimeoutSeconds,
-      req,
-    );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (<any>res).send("OK");
-  },
+const expirationSeconds = 24 * 60 * 60;
+const pubSubSubscription = new gcp.pubsub.Subscription(functionName, {
+  topic: PUBSUB_TOPIC,
+  retainAckedMessages: false,
+  expirationPolicy: { ttl: `${expirationSeconds}s` },
+  messageRetentionDuration: `${expirationSeconds}s`,
 });
 
-export const tokenBalancesFunctionUrl = tokenBalancesFunction.httpsTriggerUrl;
-
-// TODO set max instances
+export const pubSubSubscriptionName = pubSubSubscription.name;
 
 /**
- * Subscribe to PubSub events
+ * Create a Google Cloud Function that will calculate balances based on the available transaction records.
+ *
+ * This will also check the PubSub subscription for any pending requests fired off on the PubSub topic.
  */
-const pubSubDeadLetter = new gcp.pubsub.Topic(`${PUBSUB_TOPIC}-deadLetter`, {});
-
-const expirationSeconds = 24 * 60 * 60;
-const pubSubSubscription = new gcp.pubsub.Subscription(
+const functionTimeoutSeconds = 540;
+const tokenBalancesFunction = new gcp.cloudfunctions.HttpCallbackFunction(
   functionName,
   {
-    topic: PUBSUB_TOPIC,
-    pushConfig: {
-      pushEndpoint: tokenBalancesFunctionUrl,
+    runtime: "nodejs14",
+    timeout: functionTimeoutSeconds,
+    availableMemoryMb: 1024,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    callback: async (req, res) => {
+      console.log("Received callback. Initiating handler.");
+      await handler(
+        FUNCTION_PREFIX,
+        tokenBalancesBucket.name.get(),
+        RECORDS_BUCKET_PREFIX,
+        RECORDS_BUCKET_NAME,
+        functionTimeoutSeconds,
+        pubSubSubscriptionName.get(),
+      );
+      // It's not documented in the Pulumi documentation, but the function will timeout if `.end()` is missing.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (<any>res).send("OK").end();
     },
-    // If there is an issue, give up quickly, as it will be picked up later
-    deadLetterPolicy: {
-      deadLetterTopic: pubSubDeadLetter.id,
-      maxDeliveryAttempts: 5, // Lowest possible value
-    },
-    expirationPolicy: { ttl: `${expirationSeconds}s` },
-    messageRetentionDuration: `${expirationSeconds}s`,
   },
-  {
-    dependsOn: [tokenBalancesFunction],
-  },
+  { dependsOn: [pubSubSubscription] },
 );
 
-export const pubSubSubscriptionName = pubSubSubscription.name;
+export const tokenBalancesFunctionUrl = tokenBalancesFunction.httpsTriggerUrl;
 
 /**
  * Scheduling: Cloud Scheduler
@@ -234,5 +226,3 @@ const tokenBalancesNamedTable = new gcp.bigquery.Table(
 );
 
 export const tokenBalancesNamedTableId = tokenBalancesNamedTable.tableId;
-
-// TODO Add note on max instances

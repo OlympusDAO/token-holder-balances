@@ -1,5 +1,5 @@
 import { generateBalances, getLatestBalanceDate } from "./balances";
-import { getPubSubMessage } from "./helpers/pubsub";
+import { getEarliestStartDate } from "./helpers/pubsub";
 import { getEarliestRecordsDate } from "./helpers/recordFs";
 
 export const handler = async (
@@ -8,7 +8,7 @@ export const handler = async (
   recordsBucketPrefix: string,
   recordsBucketName: string,
   functionTimeoutSeconds: number,
-  req: unknown,
+  pubSubSubscriptionName: string,
 ): Promise<void> => {
   console.log(`Bucket name: ${balancesBucketName}`);
 
@@ -26,16 +26,22 @@ export const handler = async (
     return false;
   };
 
-  // Determine from the request if we have received a PubSub message
-  const pubSubMessage: Record<string, string> = getPubSubMessage(req);
-  const transactionStartDate: Date | null = pubSubMessage.startDate ? new Date(pubSubMessage.startDate) : null;
-  console.log(`Transaction start date from PubSub: ${transactionStartDate}`);
+  /**
+   * Determines the start date, based on the following inputs:
+   * - PubSub message queue
+   * - The latest date for which balances have been calculated
+   * - The earliest date for which transaction records exist
+   *
+   * @returns
+   */
+  const getStartDate = async (): Promise<Date | null> => {
+    // Get the earliest date from any PubSub messages
+    const pubSubEarliestStartDate: Date | null = await getEarliestStartDate(pubSubSubscriptionName);
 
-  // Determine the current status of transactions and balances
-  const latestBalanceDate: Date | null = await getLatestBalanceDate(balancesBucketName, balancesBucketPrefix);
-  const earliestRecordsDate: Date | null = await getEarliestRecordsDate(recordsBucketName, recordsBucketPrefix);
+    // Get the dates from balances and records
+    const latestBalanceDate: Date | null = await getLatestBalanceDate(balancesBucketName, balancesBucketPrefix);
+    const earliestRecordsDate: Date | null = await getEarliestRecordsDate(recordsBucketName, recordsBucketPrefix);
 
-  const getStartDate = (): Date | null => {
     // If there are no records, then we can't proceed
     if (!earliestRecordsDate) {
       return null;
@@ -47,15 +53,15 @@ export const handler = async (
     }
 
     // If a PubSub message has passed a startDate (and balances exist before that), use that
-    if (transactionStartDate !== null && transactionStartDate < latestBalanceDate) {
-      return transactionStartDate;
+    if (pubSubEarliestStartDate !== null && pubSubEarliestStartDate < latestBalanceDate) {
+      return pubSubEarliestStartDate;
     }
 
     // Otherwise use the last balance date
     return latestBalanceDate;
   };
 
-  const startDate: Date | null = getStartDate();
+  const startDate: Date | null = await getStartDate();
   if (!startDate) {
     console.log(`Exiting, as there was no start date`);
     return;
@@ -80,6 +86,6 @@ if (require.main === module) {
     "token-holders-transactions",
     "olympusdao-subgraph-cache-prod-f962a96",
     540,
-    {},
+    "token-balances-dev",
   );
 }
