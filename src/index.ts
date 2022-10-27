@@ -1,4 +1,5 @@
 import { generateBalances, getLatestBalanceDate } from "./balances";
+import { getISO8601DateString } from "./helpers/date";
 import { getEarliestStartDate } from "./helpers/pubsub";
 import { getEarliestRecordsDate } from "./helpers/recordFs";
 
@@ -34,7 +35,7 @@ export const handler = async (
    *
    * @returns
    */
-  const getStartDate = async (): Promise<Date | null> => {
+  const getFetchStartDate = async (): Promise<Date | null> => {
     // Get the earliest date from any PubSub messages
     const pubSubEarliestStartDate: Date | null = await getEarliestStartDate(pubSubSubscriptionName);
 
@@ -44,24 +45,36 @@ export const handler = async (
 
     // If there are no records, then we can't proceed
     if (!earliestRecordsDate) {
+      console.log(`getFetchStartDate: No records found. Returning null.`);
       return null;
     }
 
     // If there are no balances, we start from the earliest records
     if (!latestBalanceDate) {
+      console.log(
+        `getFetchStartDate: No balances found, using earliest records date: ${getISO8601DateString(
+          earliestRecordsDate,
+        )}`,
+      );
       return earliestRecordsDate;
     }
 
     // If a PubSub message has passed a startDate (and balances exist before that), use that
     if (pubSubEarliestStartDate !== null && pubSubEarliestStartDate < latestBalanceDate) {
+      console.log(
+        `getFetchStartDate: Found start date in PubSub and it is less than the latest balance date: ${getISO8601DateString(
+          pubSubEarliestStartDate,
+        )}`,
+      );
       return pubSubEarliestStartDate;
     }
 
     // Otherwise use the last balance date
+    console.log(`getFetchStartDate: Using latest balance date: ${getISO8601DateString(latestBalanceDate)}`);
     return latestBalanceDate;
   };
 
-  const startDate: Date | null = await getStartDate();
+  const startDate: Date | null = await getFetchStartDate();
   if (!startDate) {
     console.log(`Exiting, as there was no start date`);
     return;
