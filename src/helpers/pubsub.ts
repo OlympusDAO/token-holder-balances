@@ -12,11 +12,16 @@ export const getEarliestStartDate = async (subscriptionName: string): Promise<Da
       if (!message.message) return;
 
       const rawData = message.message.data;
-      if (typeof rawData !== "string") {
-        throw new Error(`getEarliestStartDate: unsure how to handle message data of type ${typeof rawData}`);
+      if (!rawData) return;
+
+      // We expect it to be a Uint8Array
+      if (typeof rawData !== "object") {
+        throw new Error(
+          `getEarliestStartDate: unsure how to handle message data of type ${typeof rawData}, contents: ${rawData}`,
+        );
       }
 
-      const dataObject = JSON.parse(Buffer.from(rawData, "base64").toString());
+      const dataObject = JSON.parse(rawData.toString());
       if (!dataObject.startDate) {
         console.log(
           `getEarliestStartDate: did not find startDate on message. Skipping.\nMessage: ${JSON.stringify(dataObject)}`,

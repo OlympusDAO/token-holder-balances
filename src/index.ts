@@ -82,10 +82,10 @@ export const handler = async (
 if (require.main === module) {
   handler(
     "token-balances",
-    "olympusdao-token-balances-dev-561e14f",
+    "olympusdao-token-balances-dev-4cf74c6",
     "token-holders-transactions",
-    "olympusdao-subgraph-cache-prod-f962a96",
+    "olympusdao-subgraph-cache-dev-47c613e",
     540,
-    "token-balances-dev",
+    "projects/utility-descent-365911/subscriptions/token-balances-dev-1ed7686",
   );
 }
