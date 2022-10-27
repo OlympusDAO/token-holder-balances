@@ -14,7 +14,7 @@ const PUBSUB_TOPIC = pulumiConfig.require("pubSubTopic");
 
 const BUCKET_NAME_PREFIX = `olympusdao-token-balances-${pulumi.getStack()}`;
 const FUNCTION_PREFIX = `token-balances`;
-const functionName = `${FUNCTION_PREFIX}-${pulumi.getStack()}`;
+const FUNCTION_NAME = `${FUNCTION_PREFIX}-${pulumi.getStack()}`;
 
 /**
  * Record storage: GCS bucket
@@ -37,7 +37,7 @@ export const tokenBalancesBucketUrl = tokenBalancesBucket.url;
  * which spawn functions.
  */
 const expirationSeconds = 24 * 60 * 60;
-const pubSubSubscription = new gcp.pubsub.Subscription(functionName, {
+const pubSubSubscription = new gcp.pubsub.Subscription(FUNCTION_NAME, {
   topic: PUBSUB_TOPIC,
   retainAckedMessages: false,
   expirationPolicy: { ttl: `${expirationSeconds}s` },
@@ -53,7 +53,7 @@ export const pubSubSubscriptionName = pubSubSubscription.name;
  */
 const functionTimeoutSeconds = 540;
 const tokenBalancesFunction = new gcp.cloudfunctions.HttpCallbackFunction(
-  functionName,
+  FUNCTION_NAME,
   {
     runtime: "nodejs14",
     timeout: functionTimeoutSeconds,
@@ -78,12 +78,13 @@ const tokenBalancesFunction = new gcp.cloudfunctions.HttpCallbackFunction(
 );
 
 export const tokenBalancesFunctionUrl = tokenBalancesFunction.httpsTriggerUrl;
+export const tokenBalancesFunctionName = tokenBalancesFunction.function.name;
 
 /**
  * Scheduling: Cloud Scheduler
  */
 const schedulerJob = new gcp.cloudscheduler.Job(
-  functionName,
+  FUNCTION_NAME,
   {
     schedule: "10 * * * *", // Start of every hour
     timeZone: "UTC",
@@ -226,3 +227,36 @@ const tokenBalancesNamedTable = new gcp.bigquery.Table(
 );
 
 export const tokenBalancesNamedTableId = tokenBalancesNamedTable.tableId;
+
+/**
+ * Create an Alert Policy
+ */
+new gcp.monitoring.AlertPolicy(FUNCTION_NAME, {
+  displayName: FUNCTION_NAME,
+  conditions: [
+    {
+      displayName: "Function Status Not OK",
+      conditionThreshold: {
+        filter: `resource.type = "cloud_function" AND resource.labels.function_name = "${tokenBalancesFunctionName}" AND metric.type = "cloudfunctions.googleapis.com/function/execution_count" AND metric.labels.status != "ok"`,
+        aggregations: [
+          {
+            alignmentPeriod: "300s",
+            crossSeriesReducer: "REDUCE_NONE",
+            perSeriesAligner: "ALIGN_SUM",
+          },
+        ],
+        comparison: "COMPARISON_GT",
+        duration: "0s",
+        trigger: {
+          count: 1,
+        },
+      },
+    },
+  ],
+  alertStrategy: {
+    autoClose: "604800s",
+  },
+  combiner: "OR",
+  enabled: true,
+  notificationChannels: ["projects/utility-descent-365911/notificationChannels/13547536167280065674"], // Pre-defined, Discord webhook
+});
