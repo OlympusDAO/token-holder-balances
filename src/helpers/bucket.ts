@@ -1,8 +1,8 @@
 import { Bucket, File, Storage } from "@google-cloud/storage";
 
 const getBucket = async (bucketName: string): Promise<Bucket> => {
-  const storage = new Storage();
-  const bucket = storage.bucket(bucketName);
+  const storage: Storage = new Storage();
+  const bucket: Bucket = storage.bucket(bucketName);
   if (!(await bucket.exists())[0]) {
     throw new Error(`Bucket ${bucketName} does not exist`);
   }
@@ -12,7 +12,7 @@ const getBucket = async (bucketName: string): Promise<Bucket> => {
 
 export const getFile = async (bucketName: string, fileName: string): Promise<File> => {
   const bucket: Bucket = await getBucket(bucketName);
-  const file = bucket.file(fileName);
+  const file: File = bucket.file(fileName);
   return file;
 };
 
@@ -29,6 +29,6 @@ export const fileExists = async (bucketName: string, fileName: string): Promise<
 // Will return the full path, e.g. `token-balances/dt=2021-01-01/dummy.jsonl
 export const listFiles = async (bucketName: string, path: string): Promise<string[]> => {
   const bucket: Bucket = await getBucket(bucketName);
-  const [files] = await bucket.getFiles({ prefix: path });
+  const files: File[] = (await bucket.getFiles({ prefix: path }))[0];
   return files.map(file => file.name);
 };
