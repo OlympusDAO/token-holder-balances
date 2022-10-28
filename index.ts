@@ -244,7 +244,7 @@ new gcp.monitoring.AlertPolicy(ALERT_POLICY_FUNCTION_ERROR, {
     {
       displayName: "Function Status Not OK",
       conditionThreshold: {
-        filter: `resource.type = "cloud_function" AND resource.labels.function_name = "${tokenBalancesFunctionName}" AND metric.type = "cloudfunctions.googleapis.com/function/execution_count" AND metric.labels.status != "ok"`,
+        filter: pulumi.interpolate`resource.type = "cloud_function" AND resource.labels.function_name = "${tokenBalancesFunctionName}" AND metric.type = "cloudfunctions.googleapis.com/function/execution_count" AND metric.labels.status != "ok"`,
         aggregations: [
           {
             alignmentPeriod: `${ALERT_POLICY_FUNCTION_ERROR_WINDOW_SECONDS}s`,
@@ -277,7 +277,7 @@ new gcp.monitoring.AlertPolicy(ALERT_POLICY_FUNCTION_EXECUTIONS, {
     {
       displayName: `Function Executions > 1 / ${ALERT_POLICY_FUNCTION_EXECUTIONS_WINDOW_SECONDS / 60} minutes`,
       conditionThreshold: {
-        filter: `resource.type = "cloud_function" AND resource.labels.function_name = "${tokenBalancesFunctionName}" AND metric.type = "cloudfunctions.googleapis.com/function/execution_count"`,
+        filter: pulumi.interpolate`resource.type = "cloud_function" AND resource.labels.function_name = "${tokenBalancesFunctionName}" AND metric.type = "cloudfunctions.googleapis.com/function/execution_count"`,
         aggregations: [
           {
             alignmentPeriod: `${ALERT_POLICY_FUNCTION_EXECUTIONS_WINDOW_SECONDS}s`,
@@ -312,7 +312,7 @@ new gcp.monitoring.AlertPolicy(ALERT_POLICY_GCS_NETWORK, {
     {
       displayName: `GCS Bucket Received > 100 MB / ${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS / 60} min`,
       conditionThreshold: {
-        filter: `resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucketName}" AND metric.type = "storage.googleapis.com/network/received_bytes_count"`,
+        filter: pulumi.interpolate`resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucketName}" AND metric.type = "storage.googleapis.com/network/received_bytes_count"`,
         aggregations: [
           {
             alignmentPeriod: `${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS}s`,
@@ -331,7 +331,7 @@ new gcp.monitoring.AlertPolicy(ALERT_POLICY_GCS_NETWORK, {
     {
       displayName: `GCS Bucket Sent > 100 MB / ${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS / 60} min`,
       conditionThreshold: {
-        filter: `resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucketName}" AND metric.type = "storage.googleapis.com/network/sent_bytes_count"`,
+        filter: pulumi.interpolate`resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucketName}" AND metric.type = "storage.googleapis.com/network/sent_bytes_count"`,
         aggregations: [
           {
             alignmentPeriod: `${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS}s`,
