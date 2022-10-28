@@ -28,6 +28,7 @@ const tokenBalancesBucket = new gcp.storage.Bucket(BUCKET_NAME_PREFIX, {
 
 // Export the DNS name of the bucket
 export const tokenBalancesBucketUrl = tokenBalancesBucket.url;
+export const tokenBalancesBucketName = tokenBalancesBucket.name;
 
 /**
  * Create a subscription to the PubSub topic that is defined in the subgraph-cache project and fired whenever transactions are stored.
@@ -311,7 +312,7 @@ new gcp.monitoring.AlertPolicy(ALERT_POLICY_GCS_NETWORK, {
     {
       displayName: `GCS Bucket Received > 100 MB / ${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS / 60} min`,
       conditionThreshold: {
-        filter: `resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucket}" AND metric.type = "storage.googleapis.com/network/received_bytes_count"`,
+        filter: `resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucketName}" AND metric.type = "storage.googleapis.com/network/received_bytes_count"`,
         aggregations: [
           {
             alignmentPeriod: `${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS}s`,
@@ -330,7 +331,7 @@ new gcp.monitoring.AlertPolicy(ALERT_POLICY_GCS_NETWORK, {
     {
       displayName: `GCS Bucket Sent > 100 MB / ${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS / 60} min`,
       conditionThreshold: {
-        filter: `resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucket}" AND metric.type = "storage.googleapis.com/network/sent_bytes_count"`,
+        filter: `resource.type = "gcs_bucket" AND resource.labels.bucket_name = "${tokenBalancesBucketName}" AND metric.type = "storage.googleapis.com/network/sent_bytes_count"`,
         aggregations: [
           {
             alignmentPeriod: `${ALERT_POLICY_GCS_NETWORK_WINDOW_SECONDS}s`,
@@ -431,7 +432,7 @@ new gcp.monitoring.Dashboard(
                             "crossSeriesReducer": "REDUCE_NONE",
                             "perSeriesAligner": "ALIGN_SUM"
                           },
-                          "filter": "resource.type=\\"gcs_bucket\\" resource.label.bucket_name=\\"${tokenBalancesBucket}\\" metric.type=\\"storage.googleapis.com/network/received_bytes_count\\""
+                          "filter": "resource.type=\\"gcs_bucket\\" resource.label.bucket_name=\\"${tokenBalancesBucketName}\\" metric.type=\\"storage.googleapis.com/network/received_bytes_count\\""
                         }
                       }
                     }
@@ -469,7 +470,7 @@ new gcp.monitoring.Dashboard(
                             "crossSeriesReducer": "REDUCE_NONE",
                             "perSeriesAligner": "ALIGN_SUM"
                           },
-                          "filter": "resource.type=\\"gcs_bucket\\" resource.label.bucket_name=\\"${tokenBalancesBucket}\\" metric.type=\\"storage.googleapis.com/network/sent_bytes_count\\""
+                          "filter": "resource.type=\\"gcs_bucket\\" resource.label.bucket_name=\\"${tokenBalancesBucketName}\\" metric.type=\\"storage.googleapis.com/network/sent_bytes_count\\""
                         }
                       }
                     }
