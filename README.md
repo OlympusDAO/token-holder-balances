@@ -42,4 +42,4 @@ This results in a small message being sent into the alerts channel.
 
 ## Caveats
 
-- This project has the details of resources from the `subgraph-cache` project hard-coded. Those values will need to be manually updated if the resource ids change (which is rare).
+- This project has the details of resources from the `subgraph-cache` project hard-coded. Those values will need to be manually updated if the resource ids change (which is rare). These can be output by running `pulumi stack` on the respective stack.
