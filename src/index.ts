@@ -96,7 +96,7 @@ if (require.main === module) {
   handler(
     "token-balances",
     "olympusdao-token-balances-dev-4cf74c6",
-    "token-holders-transactions",
+    "TokenHolderTransaction",
     "olympusdao-subgraph-cache-dev-47c613e",
     540,
     "projects/utility-descent-365911/subscriptions/token-balances-dev-1ed7686",
