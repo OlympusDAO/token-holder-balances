@@ -1867,11 +1867,6 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.7.tgz#8ccef136f240770c1379d50100796a6952f01f94"
   integrity sha512-LhFTglglr63mNXUSRYD8A+ZAIu5sFqNJ4Y2fPuY7UlrySJH87rRRlhtVmMHplmfk5WkoJGmDjE9oiTfyX94CpQ==
 
-"@types/objects-to-csv@^1.3.1":
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/@types/objects-to-csv/-/objects-to-csv-1.3.1.tgz#febce1e3103cb74e54054088fb801dcb02ea7903"
-  integrity sha512-RGZdFlzuj/3ARNTgrf/yJCKREZ2HGYP///wq3pxYWhsw47ImY0FFIBjyNcgdN9Us6lvIMdW6RfubpCAiJb65mg==
-
 "@types/parse-json@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
