@@ -43,3 +43,4 @@ This results in a small message being sent into the alerts channel.
 ## Caveats
 
 - This project has the details of resources from the `subgraph-cache` project hard-coded. Those values will need to be manually updated if the resource ids change (which is rare). These can be output by running `pulumi stack` on the respective stack.
+- If the underlying token-holders subgraph radically changes (e.g. a new token is added), then a PubSub message will be sent that will force a re-fetching (& re-calculation) of records and balances. However, if that re-calculation does not finish within a single run, this function will not currently pick up where it left off. For that reason, it is advisable to delete the directories under `token-balances/` in the GCS bucket, so that it re-calculates from scratch.
