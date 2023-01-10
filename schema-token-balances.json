@@ -1,31 +1,31 @@
 [
     {
         "name": "balance",
-        "mode": "REQUIRED",
+        "mode": "NULLABLE",
         "type": "BIGNUMERIC",
         "fields": []
     },
     {
         "name": "blockchain",
-        "mode": "REQUIRED",
+        "mode": "NULLABLE",
         "type": "STRING",
         "fields": []
     },
     {
         "name": "date",
-        "mode": "REQUIRED",
+        "mode": "NULLABLE",
         "type": "DATE",
         "fields": []
     },
     {
         "name": "holder",
-        "mode": "REQUIRED",
+        "mode": "NULLABLE",
         "type": "STRING",
         "fields": []
     },
     {
         "name": "token",
-        "mode": "REQUIRED",
+        "mode": "NULLABLE",
         "type": "STRING",
         "fields": []
     }
