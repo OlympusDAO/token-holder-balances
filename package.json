@@ -19,7 +19,7 @@
     "@urql/core": "^3.0.3",
     "big.js": "^6.2.1",
     "dotenv": "^16.0.3",
-    "graphql": "^16.6.0",
+    "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
     "jsonl-parse-stringify": "^1.0.3"
   },
