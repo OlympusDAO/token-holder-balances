@@ -29,6 +29,10 @@ This project has a few components:
 
 The Pulumi tool is used to manage the orchestration of resources in Google Cloud Platform, and has `dev` and `prod` stacks (environments).
 
+## Deployment
+
+Pulumi may require pnpm's hoisted linker layout to avoid `.pnpm/...` closure-loading or export-path errors, so this repo sets `node-linker=hoisted` in `.npmrc`.
+
 ## Discord Integration
 
 GCP monitoring does not have a direct integration with Discord, and it seemed like overkill to write a GCP -> Discord webhook integration.
