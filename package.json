@@ -62,8 +62,6 @@
     "overrides": {
       "@eslint/eslintrc>ajv": "6.14.0",
       "@eslint/eslintrc@2.1.4>ajv": "6.14.0",
-      "ajv": "6.14.0",
-      "ajv@<6.14.0": "6.14.0",
       "@babel/helpers": ">=7.26.10",
       "@babel/helpers@<7.26.10": ">=7.26.10",
       "@babel/runtime": ">=7.26.10",
